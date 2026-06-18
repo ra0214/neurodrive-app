@@ -7,6 +7,9 @@ import 'features/monitoring/presentation/views/monitoring_screen.dart';
 import 'features/history/data/repositories/mock_history_repository.dart';
 import 'features/history/presentation/view_models/history_view_models.dart';
 import 'features/history/presentation/views/history_screen.dart';
+import 'features/community/data/repositories/mock_community_repository.dart';
+import 'features/community/presentation/view_models/community_view_model.dart';
+import 'features/community/presentation/views/community_screen.dart';
 
 void main() {
   final monitoringRepository = MockMonitoringRepository();
@@ -15,12 +18,16 @@ void main() {
   final historyRepository = MockHistoryRepository();
   final historyViewModel = HistoryViewModel(repository: historyRepository);
 
+  final communityRepository = MockCommunityRepository();
+  final communityViewModel = CommunityViewModel(repository: communityRepository);
+
   runApp(
     DevicePreview(
       enabled: true,
       builder: (context) => MyApp(
         monitoringViewModel: monitoringViewModel,
         historyViewModel: historyViewModel,
+        communityViewModel: communityViewModel,
       ),
     ),
   );
@@ -29,11 +36,13 @@ void main() {
 class MyApp extends StatelessWidget {
   final MonitoringViewModel monitoringViewModel;
   final HistoryViewModel historyViewModel;
+  final CommunityViewModel communityViewModel;
 
   const MyApp({
     super.key,
     required this.monitoringViewModel,
     required this.historyViewModel,
+    required this.communityViewModel,
   });
 
   @override
@@ -47,6 +56,7 @@ class MyApp extends StatelessWidget {
       home: MainContainer(
         monitoringViewModel: monitoringViewModel,
         historyViewModel: historyViewModel,
+        communityViewModel: communityViewModel,
       ),
     );
   }
@@ -55,11 +65,13 @@ class MyApp extends StatelessWidget {
 class MainContainer extends StatefulWidget {
   final MonitoringViewModel monitoringViewModel;
   final HistoryViewModel historyViewModel;
+  final CommunityViewModel communityViewModel;
 
   const MainContainer({
     super.key,
     required this.monitoringViewModel,
     required this.historyViewModel,
+    required this.communityViewModel,
   });
 
   @override
@@ -67,14 +79,14 @@ class MainContainer extends StatefulWidget {
 }
 
 class _MainContainerState extends State<MainContainer> {
-  int _currentIndex = 1; // Default to History as requested or per image
+  int _currentIndex = 2; // Default to Community as requested
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
       MonitoringScreen(viewModel: widget.monitoringViewModel),
       HistoryScreen(viewModel: widget.historyViewModel),
-      const Center(child: Text('Comunidad')),
+      CommunityScreen(viewModel: widget.communityViewModel),
       const Center(child: Text('Alertas')),
     ];
 
