@@ -10,6 +10,9 @@ import 'features/history/presentation/views/history_screen.dart';
 import 'features/community/data/repositories/mock_community_repository.dart';
 import 'features/community/presentation/view_models/community_view_model.dart';
 import 'features/community/presentation/views/community_screen.dart';
+import 'features/profile/data/repositories/mock_profile_repository.dart';
+import 'features/profile/presentation/view_models/profile_view_model.dart';
+import 'features/profile/presentation/views/profile_screen.dart';
 
 void main() {
   final monitoringRepository = MockMonitoringRepository();
@@ -21,6 +24,9 @@ void main() {
   final communityRepository = MockCommunityRepository();
   final communityViewModel = CommunityViewModel(repository: communityRepository);
 
+  final profileRepository = MockProfileRepository();
+  final profileViewModel = ProfileViewModel(repository: profileRepository);
+
   runApp(
     DevicePreview(
       enabled: true,
@@ -28,6 +34,7 @@ void main() {
         monitoringViewModel: monitoringViewModel,
         historyViewModel: historyViewModel,
         communityViewModel: communityViewModel,
+        profileViewModel: profileViewModel,
       ),
     ),
   );
@@ -37,12 +44,14 @@ class MyApp extends StatelessWidget {
   final MonitoringViewModel monitoringViewModel;
   final HistoryViewModel historyViewModel;
   final CommunityViewModel communityViewModel;
+  final ProfileViewModel profileViewModel;
 
   const MyApp({
     super.key,
     required this.monitoringViewModel,
     required this.historyViewModel,
     required this.communityViewModel,
+    required this.profileViewModel,
   });
 
   @override
@@ -57,6 +66,7 @@ class MyApp extends StatelessWidget {
         monitoringViewModel: monitoringViewModel,
         historyViewModel: historyViewModel,
         communityViewModel: communityViewModel,
+        profileViewModel: profileViewModel,
       ),
     );
   }
@@ -66,12 +76,14 @@ class MainContainer extends StatefulWidget {
   final MonitoringViewModel monitoringViewModel;
   final HistoryViewModel historyViewModel;
   final CommunityViewModel communityViewModel;
+  final ProfileViewModel profileViewModel;
 
   const MainContainer({
     super.key,
     required this.monitoringViewModel,
     required this.historyViewModel,
     required this.communityViewModel,
+    required this.profileViewModel,
   });
 
   @override
@@ -103,7 +115,14 @@ class _MainContainerState extends State<MainContainer> {
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(viewModel: widget.profileViewModel),
+                ),
+              );
+            },
           ),
         ],
       ),
