@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:device_preview/device_preview.dart';
 import 'core/theme/app_theme.dart';
+
+// Auth Feature
+import 'features/auth/data/repositories/mock_auth_repository.dart';
+import 'features/auth/domain/use_cases/register_use_case.dart';
+import 'features/auth/domain/use_cases/login_use_case.dart';
+import 'features/auth/presentation/view_models/register_view_model.dart';
+import 'features/auth/presentation/view_models/login_view_model.dart';
+import 'features/auth/presentation/views/register_screen.dart';
+import 'features/auth/presentation/views/login_screen.dart';
+
+// Other Features
 import 'features/monitoring/data/repositories/mock_monitoring_repository.dart';
 import 'features/monitoring/presentation/view_models/monitoring_view_model.dart';
 import 'features/monitoring/presentation/views/monitoring_screen.dart';
@@ -12,38 +24,40 @@ import 'features/community/presentation/view_models/community_view_model.dart';
 import 'features/community/presentation/views/community_screen.dart';
 
 void main() {
+  final authRepository = MockAuthRepository();
   final monitoringRepository = MockMonitoringRepository();
-  final monitoringViewModel = MonitoringViewModel(repository: monitoringRepository);
-
   final historyRepository = MockHistoryRepository();
-  final historyViewModel = HistoryViewModel(repository: historyRepository);
-
   final communityRepository = MockCommunityRepository();
-  final communityViewModel = CommunityViewModel(repository: communityRepository);
 
   runApp(
     DevicePreview(
       enabled: true,
-      builder: (context) => MyApp(
-        monitoringViewModel: monitoringViewModel,
-        historyViewModel: historyViewModel,
-        communityViewModel: communityViewModel,
+      builder: (context) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => RegisterViewModel(registerUseCase: RegisterUseCase(authRepository)),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => LoginViewModel(loginUseCase: LoginUseCase(authRepository)),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => MonitoringViewModel(repository: monitoringRepository),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => HistoryViewModel(repository: historyRepository),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => CommunityViewModel(repository: communityRepository),
+          ),
+        ],
+        child: const MyApp(),
       ),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final MonitoringViewModel monitoringViewModel;
-  final HistoryViewModel historyViewModel;
-  final CommunityViewModel communityViewModel;
-
-  const MyApp({
-    super.key,
-    required this.monitoringViewModel,
-    required this.historyViewModel,
-    required this.communityViewModel,
-  });
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,53 +66,45 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
-      theme: AppTheme.darkTheme,
-      home: MainContainer(
-        monitoringViewModel: monitoringViewModel,
-        historyViewModel: historyViewModel,
-        communityViewModel: communityViewModel,
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      initialRoute: '/login',
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/home': (context) => const MainContainer(),
+      },
     );
   }
 }
 
 class MainContainer extends StatefulWidget {
-  final MonitoringViewModel monitoringViewModel;
-  final HistoryViewModel historyViewModel;
-  final CommunityViewModel communityViewModel;
-
-  const MainContainer({
-    super.key,
-    required this.monitoringViewModel,
-    required this.historyViewModel,
-    required this.communityViewModel,
-  });
+  const MainContainer({super.key});
 
   @override
   State<MainContainer> createState() => _MainContainerState();
 }
 
 class _MainContainerState extends State<MainContainer> {
-  int _currentIndex = 2; // Default to Community as requested
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     final List<Widget> screens = [
-      MonitoringScreen(viewModel: widget.monitoringViewModel),
-      HistoryScreen(viewModel: widget.historyViewModel),
-      CommunityScreen(viewModel: widget.communityViewModel),
+      MonitoringScreen(viewModel: context.read<MonitoringViewModel>()),
+      HistoryScreen(viewModel: context.read<HistoryViewModel>()),
+      CommunityScreen(viewModel: context.read<CommunityViewModel>()),
       const Center(child: Text('Alertas')),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {},
-        ),
-        title: const Text(
+        title: Text(
           'NeuroDrive',
-          style: TextStyle(color: Colors.cyan, fontWeight: FontWeight.bold),
+          style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -107,12 +113,14 @@ class _MainContainerState extends State<MainContainer> {
           ),
         ],
       ),
-      body: screens[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: screens,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF0A0E21),
-        selectedItemColor: Colors.cyan,
-        unselectedItemColor: Colors.white54,
+        selectedItemColor: theme.colorScheme.primary,
+        unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.5),
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [

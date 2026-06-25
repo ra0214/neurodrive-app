@@ -15,7 +15,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
   @override
   void initState() {
     super.initState();
-    widget.viewModel.loadCommunityData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        widget.viewModel.loadCommunityData();
+      }
+    });
   }
 
   @override
@@ -55,11 +59,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   Widget _buildTopActionCard() {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1D1E33),
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
@@ -69,15 +75,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ),
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.edit, size: 16),
-            label: const Text('Compartir', style: TextStyle(fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.cyan,
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          SizedBox(
+            width: 120, // Give button a fixed width or wrap in IntrinsicWidth
+            child: ElevatedButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.edit, size: 16),
+              label: const Text('Compartir', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.cyan,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                minimumSize: const Size(0, 48),
+              ),
             ),
           ),
         ],
