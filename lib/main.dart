@@ -15,10 +15,13 @@ import 'features/auth/presentation/views/login_screen.dart';
 // Other Features
 import 'features/monitoring/data/repositories/mock_monitoring_repository.dart';
 import 'features/monitoring/presentation/view_models/monitoring_view_model.dart';
+import 'features/monitoring/presentation/views/monitoring_screen.dart';
 import 'features/history/data/repositories/mock_history_repository.dart';
 import 'features/history/presentation/view_models/history_view_models.dart';
+import 'features/history/presentation/views/history_screen.dart';
 import 'features/community/data/repositories/mock_community_repository.dart';
 import 'features/community/presentation/view_models/community_view_model.dart';
+import 'features/community/presentation/views/community_screen.dart';
 
 void main() {
   final authRepository = MockAuthRepository();
@@ -70,7 +73,63 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/home': (context) => const MainContainer(),
       },
+    );
+  }
+}
+
+class MainContainer extends StatefulWidget {
+  const MainContainer({super.key});
+
+  @override
+  State<MainContainer> createState() => _MainContainerState();
+}
+
+class _MainContainerState extends State<MainContainer> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    final List<Widget> screens = [
+      MonitoringScreen(viewModel: context.read<MonitoringViewModel>()),
+      HistoryScreen(viewModel: context.read<HistoryViewModel>()),
+      CommunityScreen(viewModel: context.read<CommunityViewModel>()),
+      const Center(child: Text('Alertas')),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'NeuroDrive',
+          style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: screens,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: theme.colorScheme.primary,
+        unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.5),
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), label: 'Monitor'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Registros'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Comunidad'),
+          BottomNavigationBarItem(icon: Icon(Icons.warning_amber_rounded), label: 'Alerta'),
+        ],
+      ),
     );
   }
 }

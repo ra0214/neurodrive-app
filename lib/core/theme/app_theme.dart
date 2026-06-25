@@ -12,7 +12,7 @@ class AppTheme {
   // Light Theme Colors
   static const Color lightBackground = Color(0xFFF8FAFC);
   static const Color lightSurface = Colors.white;
-  static const Color lightPrimary = Color(0xFF0F172A); // Deep Indigo/Slate
+  static const Color lightPrimary = Color(0xFF0F172A); 
   static const Color lightInputFill = Color(0xFFF1F5F9);
 
   static ThemeData get darkTheme {
@@ -26,8 +26,6 @@ class AppTheme {
         onPrimary: Colors.black,
         surface: darkSurface,
         onSurface: Colors.white,
-        background: darkBackground,
-        onBackground: Colors.white,
       ),
       scaffoldBackgroundColor: darkBackground,
       inputDecorationTheme: InputDecorationTheme(
@@ -53,7 +51,7 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryCyan,
           foregroundColor: Colors.black,
-          minimumSize: const Size(double.infinity, 56),
+          minimumSize: const Size(88, 56), // Removed double.infinity to avoid crashes in Rows
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -73,9 +71,7 @@ class AppTheme {
         primary: lightPrimary,
         onPrimary: Colors.white,
         surface: lightSurface,
-        onSurface: Color(0xFF1E293B),
-        background: lightBackground,
-        onBackground: Color(0xFF0F172A),
+        onSurface: const Color(0xFF1E293B),
       ),
       scaffoldBackgroundColor: lightBackground,
       inputDecorationTheme: InputDecorationTheme(
@@ -101,7 +97,7 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: lightPrimary,
           foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 56),
+          minimumSize: const Size(88, 56), // Removed double.infinity
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

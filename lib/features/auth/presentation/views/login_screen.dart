@@ -163,11 +163,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       ElevatedButton(
                         onPressed: viewModel.isLoading
                             ? null
-                            : () {
-                                viewModel.login(
+                            : () async {
+                                await viewModel.login(
                                   email: _emailController.text,
                                   password: _passwordController.text,
                                 );
+                                if (mounted) {
+                                  if (viewModel.error == null) {
+                                    Navigator.pushReplacementNamed(context, '/home');
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(viewModel.error!),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                  }
+                                }
                               },
                         child: viewModel.isLoading
                             ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
