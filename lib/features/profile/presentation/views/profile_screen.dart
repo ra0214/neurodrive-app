@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/profile_view_model.dart';
-import '../../../../core/theme/app_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final ProfileViewModel viewModel;
-
-  const ProfileScreen({super.key, required this.viewModel});
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -17,75 +14,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.viewModel.loadProfile();
+      context.read<ProfileViewModel>().loadProfile();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: widget.viewModel,
-      child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          title: const Text(
-            'NeuroDrive',
-            style: TextStyle(color: AppTheme.primaryCyan, fontWeight: FontWeight.bold),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.account_circle_outlined),
-              onPressed: () {},
-            ),
-          ],
+    final vm = context.watch<ProfileViewModel>();
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        body: Consumer<ProfileViewModel>(
-          builder: (context, vm, child) {
-            if (vm.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+        title: Text(
+          'NeuroDrive',
+          style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: Builder(
+        builder: (context) {
+          if (vm.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            final user = vm.userProfile;
-            if (user == null) {
-              return const Center(child: Text('No se pudo cargar el perfil'));
-            }
+          final user = vm.userProfile;
+          if (user == null) {
+            return const Center(child: Text('No se pudo cargar el perfil'));
+          }
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  _buildProfileHeader(user),
-                  const SizedBox(height: 32),
-                  _buildSectionHeader('DISPOSITIVOS VINCULADOS', 'Gestionar'),
-                  _buildDeviceCard(user.connectedDevice),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('CONTACTOS DE EMERGENCIA', '+ Añadir'),
-                  _buildContactCard(user.emergencyContact),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('PREFERENCIAS DE ALERTA', null),
-                  _buildPreferencesCard(vm),
-                  const SizedBox(height: 32),
-                  _buildLogoutButton(),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'NEURODRIVE CORE V2.4.0-STABLE',
-                    style: TextStyle(color: Colors.white24, fontSize: 10, letterSpacing: 1.2),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                _buildProfileHeader(context, user),
+                const SizedBox(height: 32),
+                _buildSectionHeader(context, 'DISPOSITIVOS VINCULADOS', 'Gestionar'),
+                _buildDeviceCard(context, user.connectedDevice),
+                const SizedBox(height: 24),
+                _buildSectionHeader(context, 'CONTACTOS DE EMERGENCIA', '+ Añadir'),
+                _buildContactCard(context, user.emergencyContact),
+                const SizedBox(height: 24),
+                _buildSectionHeader(context, 'PREFERENCIAS DE ALERTA', null),
+                _buildPreferencesCard(context, vm),
+                const SizedBox(height: 32),
+                _buildLogoutButton(context),
+                const SizedBox(height: 24),
+                Text(
+                  'NEURODRIVE CORE V2.4.0-STABLE',
+                  style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.24),
+                    fontSize: 10,
+                    letterSpacing: 1.2,
                   ),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            );
-          },
-        ),
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildProfileHeader(user) {
+  Widget _buildProfileHeader(BuildContext context, user) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
         Stack(
@@ -94,7 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppTheme.primaryCyan.withOpacity(0.5), width: 2),
+                border: Border.all(color: colorScheme.primary.withValues(alpha: 0.5), width: 2),
               ),
               child: CircleAvatar(
                 radius: 50,
@@ -106,11 +108,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               bottom: 0,
               child: Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: AppTheme.primaryCyan,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.edit, size: 16, color: Colors.black),
+                child: Icon(Icons.edit, size: 16, color: colorScheme.onPrimary),
               ),
             ),
           ],
@@ -118,17 +120,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 16),
         Text(
           user.name,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
         ),
         Text(
           user.id,
-          style: const TextStyle(fontSize: 12, color: AppTheme.primaryCyan, letterSpacing: 1.5),
+          style: TextStyle(fontSize: 12, color: colorScheme.primary, letterSpacing: 1.5),
         ),
       ],
     );
   }
 
-  Widget _buildSectionHeader(String title, String? actionText) {
+  Widget _buildSectionHeader(BuildContext context, String title, String? actionText) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
@@ -136,45 +139,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(color: Colors.white38, fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 1.1),
+            style: TextStyle(
+              color: colorScheme.onSurface.withValues(alpha: 0.38),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 1.1,
+            ),
           ),
           if (actionText != null)
             Text(
               actionText,
-              style: const TextStyle(color: AppTheme.primaryCyan, fontSize: 12, fontWeight: FontWeight.w500),
+              style: TextStyle(color: colorScheme.primary, fontSize: 12, fontWeight: FontWeight.w500),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildDeviceCard(device) {
+  Widget _buildDeviceCard(BuildContext context, device) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primaryCyan.withOpacity(0.3)),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppTheme.primaryCyan.withOpacity(0.1),
+              color: colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.auto_awesome, color: AppTheme.primaryCyan),
+            child: Icon(Icons.auto_awesome, color: colorScheme.primary),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(device.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(device.name, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
                 Text(
                   'Estado: ${device.status} • Batería ${device.batteryLevel}%',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
             ),
@@ -185,11 +194,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildContactCard(contact) {
+  Widget _buildContactCard(BuildContext context, contact) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -197,54 +207,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: colorScheme.onSurface.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.person_outline, color: Colors.white70),
+            child: Icon(Icons.person_outline, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(contact.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(contact.name, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
                 Text(
                   '${contact.relationship} • ${contact.phoneNumber}',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.phone_outlined, color: Colors.white54, size: 20),
+          Icon(Icons.phone_outlined, color: colorScheme.onSurfaceVariant, size: 20),
         ],
       ),
     );
   }
 
-  Widget _buildPreferencesCard(ProfileViewModel vm) {
+  Widget _buildPreferencesCard(BuildContext context, ProfileViewModel vm) {
+    final colorScheme = Theme.of(context).colorScheme;
     final prefs = vm.userProfile!.preferences;
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           _buildSwitchTile(
+            context,
             'Vibración Háptica',
             'Alertas físicas en la muñeca',
             prefs.hapticFeedback,
             vm.toggleHapticFeedback,
           ),
-          const Divider(height: 1, color: Colors.white10),
+          Divider(height: 1, color: colorScheme.outlineVariant),
           _buildSwitchTile(
+            context,
             'Alertas de Audio',
             'Notificaciones sonoras en cabina',
             prefs.audioAlerts,
             vm.toggleAudioAlerts,
           ),
-          const Divider(height: 1, color: Colors.white10),
+          Divider(height: 1, color: colorScheme.outlineVariant),
           _buildSwitchTile(
+            context,
             'Modo Nocturno Automático',
             'Ajuste de brillo por sensores',
             prefs.autoNightMode,
@@ -255,18 +269,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSwitchTile(String title, String subtitle, bool value, Function(bool) onChanged) {
+  Widget _buildSwitchTile(BuildContext context, String title, String subtitle, bool value, Function(bool) onChanged) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
-      subtitle: Text(subtitle, style: const TextStyle(color: Colors.white38, fontSize: 11)),
-      activeColor: AppTheme.primaryCyan,
+      title: Text(title, style: TextStyle(color: colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w500)),
+      subtitle: Text(subtitle, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11)),
+      activeColor: colorScheme.primary,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
 
-  Widget _buildLogoutButton() {
+  Widget _buildLogoutButton(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -274,8 +290,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         icon: const Icon(Icons.logout, size: 18),
         label: const Text('Cerrar Sesión'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2C1620),
-          foregroundColor: const Color(0xFFFF4B6E),
+          backgroundColor: colorScheme.errorContainer,
+          foregroundColor: colorScheme.onErrorContainer,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 0,
