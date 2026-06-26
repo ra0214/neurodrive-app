@@ -5,26 +5,35 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:neurodrive/main.dart';
+import 'package:neurodrive/features/monitoring/data/repositories/mock_monitoring_repository.dart';
+import 'package:neurodrive/features/monitoring/presentation/view_models/monitoring_view_model.dart';
+import 'package:neurodrive/features/history/data/repositories/mock_history_repository.dart';
+import 'package:neurodrive/features/history/presentation/view_models/history_view_models.dart';
+import 'package:neurodrive/features/community/data/repositories/mock_community_repository.dart';
+import 'package:neurodrive/features/community/presentation/view_models/community_view_model.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('App smoke test', (WidgetTester tester) async {
+    // Initialize mock dependencies
+    final monitoringRepository = MockMonitoringRepository();
+    final monitoringViewModel = MonitoringViewModel(repository: monitoringRepository);
+
+    final historyRepository = MockHistoryRepository();
+    final historyViewModel = HistoryViewModel(repository: historyRepository);
+
+    final communityRepository = MockCommunityRepository();
+    final communityViewModel = CommunityViewModel(repository: communityRepository);
+
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(
+      monitoringViewModel: monitoringViewModel,
+      historyViewModel: historyViewModel,
+      communityViewModel: communityViewModel,
+    ));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that the app title is present.
+    expect(find.text('NeuroDrive'), findsAtLeastNWidgets(1));
   });
 }
