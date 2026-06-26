@@ -17,7 +17,8 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
   @override
   void initState() {
     super.initState();
-    widget.viewModel.loadMonitoringData();
+    // Use Future.microtask to avoid calling notifyListeners() during build phase
+    Future.microtask(() => widget.viewModel.loadMonitoringData());
   }
 
   @override
@@ -31,7 +32,7 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
 
         final status = widget.viewModel.status;
         if (status == null) {
-          return const Center(child: Text('No data available'));
+          return const Center(child: Text('No hay datos disponibles'));
         }
 
         return SingleChildScrollView(
@@ -57,26 +58,28 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
   }
 
   Widget _buildHeaderCard() {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.cyan.withValues(alpha: 0.5)),
+        color: theme.colorScheme.surface,
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.circle, color: Colors.cyan, size: 12),
-          SizedBox(width: 12),
+          Icon(Icons.circle, color: theme.colorScheme.primary, size: 12),
+          const SizedBox(width: 12),
           Text(
             'Conducción Segura',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.cyan,
+              color: theme.colorScheme.primary,
             ),
           ),
-          Spacer(),
-          Icon(Icons.verified_user_outlined, color: Colors.cyan, size: 20),
+          const Spacer(),
+          Icon(Icons.verified_user_outlined, color: theme.colorScheme.primary, size: 20),
         ],
       ),
     );

@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:device_preview/device_preview.dart';
 import 'package:provider/provider.dart';
+import 'package:device_preview/device_preview.dart';
 import 'core/theme/app_theme.dart';
+
+// Auth Feature (Raul)
+import 'features/auth/data/repositories/mock_auth_repository.dart';
+import 'features/auth/domain/use_cases/register_use_case.dart';
+import 'features/auth/domain/use_cases/login_use_case.dart';
+import 'features/auth/presentation/view_models/register_view_model.dart';
+import 'features/auth/presentation/view_models/login_view_model.dart';
+import 'features/auth/presentation/views/register_screen.dart';
+import 'features/auth/presentation/views/login_screen.dart';
+
+// Monitoring & Records Features (Keren)
 import 'features/monitoring/data/repositories/mock_monitoring_repository.dart';
 import 'features/monitoring/presentation/view_models/monitoring_view_model.dart';
 import 'features/monitoring/presentation/views/monitoring_screen.dart';
@@ -11,6 +22,8 @@ import 'features/history/presentation/views/history_screen.dart';
 import 'features/community/data/repositories/mock_community_repository.dart';
 import 'features/community/presentation/view_models/community_view_model.dart';
 import 'features/community/presentation/views/community_screen.dart';
+
+// Profile Feature (Adriana)
 import 'features/profile/data/repositories/mock_profile_repository.dart';
 import 'features/profile/domain/use_cases/get_profile_use_case.dart';
 import 'features/profile/domain/use_cases/update_preferences_use_case.dart';
@@ -19,35 +32,29 @@ import 'features/profile/presentation/views/profile_screen.dart';
 
 void main() {
   // Repositories
+  final authRepository = MockAuthRepository();
   final monitoringRepository = MockMonitoringRepository();
   final historyRepository = MockHistoryRepository();
   final communityRepository = MockCommunityRepository();
   final profileRepository = MockProfileRepository();
-
-  // Use Cases
-  final getProfileUseCase = GetProfileUseCase(profileRepository);
-  final updatePreferencesUseCase = UpdatePreferencesUseCase(profileRepository);
 
   runApp(
     DevicePreview(
       enabled: true,
       builder: (context) => MultiProvider(
         providers: [
-          ChangeNotifierProvider(
-            create: (_) => MonitoringViewModel(repository: monitoringRepository),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => HistoryViewModel(repository: historyRepository),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => CommunityViewModel(repository: communityRepository),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => ProfileViewModel(
-              getProfileUseCase: getProfileUseCase,
-              updatePreferencesUseCase: updatePreferencesUseCase,
-            ),
-          ),
+          // Auth
+          ChangeNotifierProvider(create: (_) => RegisterViewModel(registerUseCase: RegisterUseCase(authRepository))),
+          ChangeNotifierProvider(create: (_) => LoginViewModel(loginUseCase: LoginUseCase(authRepository))),
+          // Core features
+          ChangeNotifierProvider(create: (_) => MonitoringViewModel(repository: monitoringRepository)),
+          ChangeNotifierProvider(create: (_) => HistoryViewModel(repository: historyRepository)),
+          ChangeNotifierProvider(create: (_) => CommunityViewModel(repository: communityRepository)),
+          // Profile
+          ChangeNotifierProvider(create: (_) => ProfileViewModel(
+            getProfileUseCase: GetProfileUseCase(profileRepository),
+            updatePreferencesUseCase: UpdatePreferencesUseCase(profileRepository),
+          )),
         ],
         child: const MyApp(),
       ),
@@ -65,9 +72,14 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
-      theme: AppTheme.darkTheme,
-      home: const MainContainer(),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      initialRoute: '/login',
       routes: {
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/home': (context) => const MainContainer(),
         '/profile': (context) => const ProfileScreen(),
       },
     );
@@ -82,10 +94,11 @@ class MainContainer extends StatefulWidget {
 }
 
 class _MainContainerState extends State<MainContainer> {
-  int _currentIndex = 2; // Default to Community
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final List<Widget> screens = [
       MonitoringScreen(viewModel: context.read<MonitoringViewModel>()),
       HistoryScreen(viewModel: context.read<HistoryViewModel>()),
@@ -93,33 +106,24 @@ class _MainContainerState extends State<MainContainer> {
       const Center(child: Text('Alertas')),
     ];
 
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {},
-        ),
         title: Text(
           'NeuroDrive',
-          style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
+          style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {
-              Navigator.pushNamed(context, '/profile');
-            },
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
           ),
         ],
       ),
-      body: screens[_currentIndex],
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: colorScheme.surface,
-        selectedItemColor: colorScheme.primary,
-        unselectedItemColor: colorScheme.onSurface.withValues(alpha: 0.54),
+        selectedItemColor: theme.colorScheme.primary,
+        unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.5),
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [

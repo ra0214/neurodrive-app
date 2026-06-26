@@ -16,7 +16,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void initState() {
     super.initState();
-    widget.viewModel.loadHistoryData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        widget.viewModel.loadHistoryData();
+      }
+    });
   }
 
   @override
@@ -57,14 +61,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildFilters() {
-    return Row(
-      children: [
-        _FilterChip(label: 'Todos los Viajes', isSelected: true),
-        const SizedBox(width: 8),
-        _FilterChip(label: 'Alto Riesgo'),
-        const SizedBox(width: 8),
-        _FilterChip(label: 'Rutas'),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _FilterChip(label: 'Todos los Viajes', isSelected: true),
+          const SizedBox(width: 8),
+          _FilterChip(label: 'Alto Riesgo'),
+          const SizedBox(width: 8),
+          _FilterChip(label: 'Rutas'),
+        ],
+      ),
     );
   }
 }
@@ -79,7 +86,7 @@ class _FilterChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isSelected ? Colors.cyan : const Color(0xFF1D1E33),
+        color: isSelected ? Colors.cyan : const Color(0xFF161D2D),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
