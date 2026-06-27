@@ -1,6 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Para SystemNavigator.pop
-import 'package:flutter/foundation.dart'; // Para kIsWeb
+import 'package:flutter/services.dart'; 
+import 'package:flutter/foundation.dart'; 
 import 'package:provider/provider.dart';
 import 'package:neurodrive/features/auth/presentation/view_models/login_view_model.dart';
 import 'package:neurodrive/core/security/security_service.dart';
@@ -47,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (kIsWeb) {
                     Navigator.of(context).pop();
                   } else {
-                    SystemNavigator.pop(); // Cierre seguro en Android/iOS
+                    SystemNavigator.pop();
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -61,6 +62,13 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: isDark
-                ? [const Color(0xFF0D1B2A), theme.colorScheme.background]
+                ? [const Color(0xFF08132A), const Color(0xFF0D1B2A)]
                 : [theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.background],
           ),
         ),
@@ -90,8 +98,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 60),
                 Icon(Icons.sensors, color: theme.colorScheme.primary, size: 48),
                 const SizedBox(height: 16),
-                Text('NeuroDrive', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
-                Text('THE SILENT GUARDIAN', style: TextStyle(fontSize: 10, letterSpacing: 3, color: theme.colorScheme.onBackground.withValues(alpha: 0.6))),
+                Text('NeuroDrive',
+                    style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary)),
+                Text('THE SILENT GUARDIAN',
+                    style: TextStyle(
+                        fontSize: 10,
+                        letterSpacing: 3,
+                        color: theme.colorScheme.onBackground.withValues(alpha: 0.7))),
                 const SizedBox(height: 60),
                 Container(
                   padding: const EdgeInsets.all(24),
@@ -99,21 +115,48 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+                    boxShadow: isDark ? [] : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      )
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Bienvenido', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+                      Text('Bienvenido',
+                          style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface)),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Ingresa tus credenciales para continuar con el monitoreo.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
                       const SizedBox(height: 32),
-                      _buildLabel('CORREO ELECTRÓNICO', Icons.email_outlined),
-                      TextField(controller: _emailController, decoration: const InputDecoration(hintText: 'usuario@neurodrive.ai')),
+                      _buildLabel(context, 'CORREO ELECTRÓNICO', Icons.email_outlined),
+                      const SizedBox(height: 8),
+                      TextField(
+                          controller: _emailController,
+                          style: TextStyle(color: theme.colorScheme.onSurface),
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(hintText: 'usuario@neurodrive.ai')),
                       const SizedBox(height: 24),
-                      _buildLabel('CONTRASEÑA', Icons.lock_outline),
+                      _buildLabel(context, 'CONTRASEÑA', Icons.lock_outline),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
+                        style: TextStyle(color: theme.colorScheme.onSurface),
                         decoration: InputDecoration(
                           hintText: '••••••••',
+                          prefixIcon: const Icon(Icons.lock_outline, size: 18),
                           suffixIcon: IconButton(
                             icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -125,18 +168,55 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: viewModel.isLoading ? null : () async {
-                            await viewModel.login(email: _emailController.text, password: _passwordController.text);
-                            if (mounted && viewModel.error == null) Navigator.pushReplacementNamed(context, '/home');
+                            final email = _emailController.text.trim();
+                            final password = _passwordController.text;
+
+                            if (email.isEmpty || password.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Por favor, ingresa tu correo y contraseña.'),
+                                  backgroundColor: Colors.orange,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                              return;
+                            }
+
+                            await viewModel.login(email: email, password: password);
+
+                            if (mounted) {
+                              if (viewModel.error == null) {
+                                Navigator.pushReplacementNamed(context, '/home');
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(viewModel.error!),
+                                    backgroundColor: theme.colorScheme.error,
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 4),
+                                  ),
+                                );
+                              }
+                            }
                           },
-                          child: viewModel.isLoading ? const CircularProgressIndicator() : const Text('Iniciar Sesión'),
+                          child: viewModel.isLoading
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: theme.colorScheme.onPrimary),
+                                )
+                              : const Text('Iniciar Sesión'),
                         ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 24),
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, '/register'),
-                  child: Text('¿No tienes cuenta? Regístrate', style: TextStyle(color: theme.colorScheme.primary)),
+                  child: Text('¿No tienes cuenta? Regístrate',
+                      style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -146,11 +226,16 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLabel(String text, IconData icon) {
+  Widget _buildLabel(BuildContext context, String text, IconData icon) {
+    final theme = Theme.of(context);
     return Row(children: [
-      Icon(icon, size: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+      Icon(icon, size: 14, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
       const SizedBox(width: 8),
-      Text(text, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
+      Text(text,
+          style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
     ]);
   }
 }

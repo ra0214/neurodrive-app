@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/auth_models.dart';
@@ -11,6 +12,7 @@ class AuthException implements Exception {
 
 class AuthApiService {
   final String baseUrl = "http://173.212.202.138:8080/api/v1";
+  final Duration _timeout = const Duration(seconds: 5);
 
   Future<AuthResponse> login(String email, String password) async {
     try {
@@ -18,19 +20,25 @@ class AuthApiService {
         Uri.parse("$baseUrl/auth/login"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"correo": email, "password": password}),
-      );
+      ).timeout(_timeout);
 
       if (response.statusCode == 200) {
         return AuthResponse.fromJson(jsonDecode(response.body));
       } else if (response.statusCode == 401) {
         throw AuthException("Credenciales inválidas. Verifica tu correo y contraseña.");
       } else {
-        final errorData = jsonDecode(response.body);
-        throw AuthException(errorData['message'] ?? "Error del servidor (${response.statusCode})");
+        try {
+          final errorData = jsonDecode(response.body);
+          throw AuthException(errorData['message'] ?? "Error del servidor (${response.statusCode})");
+        } catch (_) {
+          throw AuthException("El servicio no está disponible temporalmente (Error ${response.statusCode})");
+        }
       }
+    } on TimeoutException {
+      throw AuthException("El servidor tardó demasiado en responder. Verifica tu conexión.");
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw AuthException("Error de conexión. Verifica tu internet.");
+      throw AuthException("No se pudo conectar con el servidor. Verifica tu internet.");
     }
   }
 
@@ -52,15 +60,21 @@ class AuthApiService {
           "password": password,
           "telefono": telefono ?? "",
         }),
-      );
+      ).timeout(_timeout);
 
       if (response.statusCode != 201) {
-        final errorData = jsonDecode(response.body);
-        throw AuthException(errorData['message'] ?? "Error al registrar la cuenta.");
+        try {
+          final errorData = jsonDecode(response.body);
+          throw AuthException(errorData['message'] ?? "Error al registrar la cuenta.");
+        } catch (_) {
+          throw AuthException("Error inesperado en el servidor (${response.statusCode})");
+        }
       }
+    } on TimeoutException {
+      throw AuthException("El servidor tardó demasiado en responder.");
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw AuthException("Error de conexión. Verifica tu internet.");
+      throw AuthException("Error de conexión al registrar.");
     }
   }
 }
