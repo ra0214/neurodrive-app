@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:device_preview/device_preview.dart';
 import 'core/theme/app_theme.dart';
 import 'core/security/security_service.dart';
+import 'core/security/token_storage.dart';
 
 // Auth Feature
-import 'features/auth/data/repositories/mock_auth_repository.dart';
+import 'features/auth/data/sources/auth_api_service.dart';
+import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/use_cases/register_use_case.dart';
 import 'features/auth/domain/use_cases/login_use_case.dart';
 import 'features/auth/presentation/view_models/register_view_model.dart';
@@ -32,14 +34,21 @@ import 'features/profile/presentation/view_models/profile_view_model.dart';
 import 'features/profile/presentation/views/profile_screen.dart';
 
 void main() async {
-  // Asegurar que los bindings de Flutter estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
 
-  // PASO 1 SEGURIDAD: Bloqueo de capturas de pantalla y grabaciones
+  // Seguridad
   await SecurityService.setupScreenProtection();
 
-  // Repositories
-  final authRepository = MockAuthRepository();
+  // API & Storage
+  final authApiService = AuthApiService();
+  final tokenStorage = TokenStorage();
+
+  // Repositories (Auth Real, otros Mock)
+  final authRepository = AuthRepositoryImpl(
+    apiService: authApiService,
+    tokenStorage: tokenStorage,
+  );
+
   final monitoringRepository = MockMonitoringRepository();
   final historyRepository = MockHistoryRepository();
   final communityRepository = MockCommunityRepository();
