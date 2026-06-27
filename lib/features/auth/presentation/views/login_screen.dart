@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/login_view_model.dart';
-import '../../../core/security/security_service.dart';
+import '../../../../core/security/security_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -77,9 +77,9 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: isDark 
-              ? [const Color(0xFF0D1B2A), theme.colorScheme.background]
-              : [theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.background],
+            colors: isDark
+                ? [const Color(0xFF0D1B2A), theme.colorScheme.background]
+                : [theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.background],
           ),
         ),
         child: SafeArea(
@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       _buildTextFieldLabel(context, 'CORREO ELECTRÓNICO'),
                       const SizedBox(height: 8),
                       TextField(
@@ -165,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -201,40 +201,40 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: viewModel.isLoading
                               ? null
                               : () async {
-                                  await viewModel.login(
-                                    email: _emailController.text,
-                                    password: _passwordController.text,
-                                  );
-                                  if (mounted) {
-                                    if (viewModel.error == null) {
-                                      Navigator.pushReplacementNamed(context, '/home');
-                                    } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(viewModel.error!),
-                                          backgroundColor: theme.colorScheme.error,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
+                            await viewModel.login(
+                              email: _emailController.text,
+                              password: _passwordController.text,
+                            );
+                            if (mounted) {
+                              if (viewModel.error == null) {
+                                Navigator.pushReplacementNamed(context, '/home');
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(viewModel.error!),
+                                    backgroundColor: theme.colorScheme.error,
+                                  ),
+                                );
+                              }
+                            }
+                          },
                           child: viewModel.isLoading
                               ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
                               : const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text('Iniciar Sesión'),
-                                    SizedBox(width: 8),
-                                    Icon(Icons.login, size: 20),
-                                  ],
-                                ),
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('Iniciar Sesión'),
+                              SizedBox(width: 8),
+                              Icon(Icons.login, size: 20),
+                            ],
+                          ),
                         ),
                       ),
                     ],
