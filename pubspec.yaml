@@ -16,6 +16,7 @@ dependencies:
   http: ^1.2.1
   intl: ^0.20.2
   cupertino_icons: ^1.0.8
+  flutter_secure_storage: ^9.0.0
   
   # Seguridad
   flutter_windowmanager: ^0.2.0
