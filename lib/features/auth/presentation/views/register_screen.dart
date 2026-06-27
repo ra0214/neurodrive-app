@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:neurodrive/core/security/security_service.dart';
 import '../view_models/register_view_model.dart';
-import '../../../../core/security/security_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,7 +12,8 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _fullNameController = TextEditingController();
+  final _nombreEmpresaController = TextEditingController();
+  final _rfcController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -59,7 +60,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _fullNameController.dispose();
+    _nombreEmpresaController.dispose();
+    _rfcController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -79,9 +81,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: isDark
-                ? [const Color(0xFF0D1B2A), theme.colorScheme.background]
-                : [theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.background],
+            colors: isDark 
+              ? [const Color(0xFF0D1B2A), theme.colorScheme.background]
+              : [theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.background],
           ),
         ),
         child: SafeArea(
@@ -147,16 +149,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-
+                      
                       _buildTextField(
                         context,
-                        label: 'NOMBRE COMPLETO',
+                        label: 'NOMBRE EMPRESA / PERSONAL',
                         hint: 'Ej. Carlos Mendoza',
-                        icon: Icons.person_outline,
-                        controller: _fullNameController,
+                        icon: Icons.business_outlined,
+                        controller: _nombreEmpresaController,
                       ),
                       const SizedBox(height: 20),
 
+                      _buildTextField(
+                        context,
+                        label: 'RFC',
+                        hint: 'RFC123456789',
+                        icon: Icons.badge_outlined,
+                        controller: _rfcController,
+                      ),
+                      const SizedBox(height: 20),
+                      
                       _buildTextField(
                         context,
                         label: 'CORREO ELECTRÓNICO',
@@ -165,7 +176,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _emailController,
                       ),
                       const SizedBox(height: 20),
-
+                      
                       _buildTextField(
                         context,
                         label: 'CONTRASEÑA',
@@ -179,41 +190,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ),
                       const SizedBox(height: 32),
-
+                      
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: viewModel.isLoading
                               ? null
                               : () async {
-                            await viewModel.register(
-                              fullName: _fullNameController.text,
-                              email: _emailController.text,
-                              password: _passwordController.text,
-                            );
-                            if (mounted) {
-                              if (viewModel.error == null) {
-                                Navigator.pushReplacementNamed(context, '/home');
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(viewModel.error!),
-                                    backgroundColor: theme.colorScheme.error,
-                                  ),
-                                );
-                              }
-                            }
-                          },
+                                  await viewModel.register(
+                                    nombreEmpresa: _nombreEmpresaController.text,
+                                    rfc: _rfcController.text,
+                                    email: _emailController.text,
+                                    password: _passwordController.text,
+                                  );
+                                  if (mounted) {
+                                    if (viewModel.error == null) {
+                                      Navigator.pushReplacementNamed(context, '/login');
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Registro exitoso. Inicia sesión.'),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(viewModel.error!),
+                                          backgroundColor: theme.colorScheme.error,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
                           child: viewModel.isLoading
                               ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
                               : const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('Registrarse'),
-                              SizedBox(width: 8),
-                              Icon(Icons.arrow_forward, size: 18),
-                            ],
-                          ),
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('Registrarse'),
+                                    SizedBox(width: 8),
+                                    Icon(Icons.arrow_forward, size: 18),
+                                  ],
+                                ),
                         ),
                       ),
                     ],
@@ -248,15 +266,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildTextField(
-      BuildContext context, {
-        required String label,
-        required String hint,
-        required IconData icon,
-        required TextEditingController controller,
-        bool isPassword = false,
-        bool obscureText = false,
-        VoidCallback? onSuffixIconPressed,
-      }) {
+    BuildContext context, {
+    required String label,
+    required String hint,
+    required IconData icon,
+    required TextEditingController controller,
+    bool isPassword = false,
+    bool obscureText = false,
+    VoidCallback? onSuffixIconPressed,
+  }) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,12 +308,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             prefixIcon: Icon(icon, size: 18),
             suffixIcon: isPassword
                 ? IconButton(
-              icon: Icon(
-                obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                size: 18,
-              ),
-              onPressed: onSuffixIconPressed,
-            )
+                    icon: Icon(
+                      obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      size: 18,
+                    ),
+                    onPressed: onSuffixIconPressed,
+                  )
                 : null,
           ),
         ),
