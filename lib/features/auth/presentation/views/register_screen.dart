@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/register_view_model.dart';
+import '../../../../core/security/security_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,6 +16,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSecurity();
+  }
+
+  Future<void> _checkSecurity() async {
+    final String? errorMessage = await SecurityService.checkDeviceSecurity();
+    if (errorMessage != null && mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => PopScope(
+          canPop: false,
+          child: AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            title: Row(
+              children: [
+                Icon(Icons.security, color: Theme.of(context).colorScheme.error),
+                const SizedBox(width: 10),
+                const Text('Bloqueo de Seguridad'),
+              ],
+            ),
+            content: Text(errorMessage, style: const TextStyle(fontSize: 14)),
+            actions: [
+              ElevatedButton(
+                onPressed: () => exit(0),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  foregroundColor: Theme.of(context).colorScheme.onError,
+                ),
+                child: const Text('CERRAR APLICACIÓN'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -37,9 +79,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: isDark 
-              ? [const Color(0xFF0D1B2A), theme.colorScheme.background]
-              : [theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.background],
+            colors: isDark
+                ? [const Color(0xFF0D1B2A), theme.colorScheme.background]
+                : [theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.background],
           ),
         ),
         child: SafeArea(
@@ -56,7 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
                   ),
-                  child: Icon(Icons.sensors, color: theme.colorScheme.primary, size: 40),
+                  child: Icon(Icons.sensors, color: theme.colorScheme.primary, size: 32),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -105,7 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       _buildTextField(
                         context,
                         label: 'NOMBRE COMPLETO',
@@ -114,7 +156,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _fullNameController,
                       ),
                       const SizedBox(height: 20),
-                      
+
                       _buildTextField(
                         context,
                         label: 'CORREO ELECTRÓNICO',
@@ -123,7 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _emailController,
                       ),
                       const SizedBox(height: 20),
-                      
+
                       _buildTextField(
                         context,
                         label: 'CONTRASEÑA',
@@ -137,41 +179,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ),
                       const SizedBox(height: 32),
-                      
+
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: viewModel.isLoading
                               ? null
                               : () async {
-                                  await viewModel.register(
-                                    fullName: _fullNameController.text,
-                                    email: _emailController.text,
-                                    password: _passwordController.text,
-                                  );
-                                  if (mounted) {
-                                    if (viewModel.error == null) {
-                                      Navigator.pushReplacementNamed(context, '/home');
-                                    } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(viewModel.error!),
-                                          backgroundColor: theme.colorScheme.error,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
+                            await viewModel.register(
+                              fullName: _fullNameController.text,
+                              email: _emailController.text,
+                              password: _passwordController.text,
+                            );
+                            if (mounted) {
+                              if (viewModel.error == null) {
+                                Navigator.pushReplacementNamed(context, '/home');
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(viewModel.error!),
+                                    backgroundColor: theme.colorScheme.error,
+                                  ),
+                                );
+                              }
+                            }
+                          },
                           child: viewModel.isLoading
                               ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
                               : const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text('Registrarse'),
-                                    SizedBox(width: 8),
-                                    Icon(Icons.arrow_forward, size: 18),
-                                  ],
-                                ),
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('Registrarse'),
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_forward, size: 18),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -206,15 +248,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildTextField(
-    BuildContext context, {
-    required String label,
-    required String hint,
-    required IconData icon,
-    required TextEditingController controller,
-    bool isPassword = false,
-    bool obscureText = false,
-    VoidCallback? onSuffixIconPressed,
-  }) {
+      BuildContext context, {
+        required String label,
+        required String hint,
+        required IconData icon,
+        required TextEditingController controller,
+        bool isPassword = false,
+        bool obscureText = false,
+        VoidCallback? onSuffixIconPressed,
+      }) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,12 +290,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             prefixIcon: Icon(icon, size: 18),
             suffixIcon: isPassword
                 ? IconButton(
-                    icon: Icon(
-                      obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      size: 18,
-                    ),
-                    onPressed: onSuffixIconPressed,
-                  )
+              icon: Icon(
+                obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                size: 18,
+              ),
+              onPressed: onSuffixIconPressed,
+            )
                 : null,
           ),
         ),
