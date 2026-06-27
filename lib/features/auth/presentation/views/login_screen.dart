@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/login_view_model.dart';
+import '../../../core/security/security_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +15,46 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSecurity();
+  }
+
+  Future<void> _checkSecurity() async {
+    final String? errorMessage = await SecurityService.checkDeviceSecurity();
+    if (errorMessage != null && mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => PopScope(
+          canPop: false,
+          child: AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            title: Row(
+              children: [
+                Icon(Icons.security, color: Theme.of(context).colorScheme.error),
+                const SizedBox(width: 10),
+                const Text('Bloqueo de Seguridad'),
+              ],
+            ),
+            content: Text(errorMessage, style: const TextStyle(fontSize: 14)),
+            actions: [
+              ElevatedButton(
+                onPressed: () => exit(0),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  foregroundColor: Theme.of(context).colorScheme.onError,
+                ),
+                child: const Text('CERRAR APLICACIÓN'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -37,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
             end: Alignment.bottomCenter,
             colors: isDark 
               ? [const Color(0xFF0D1B2A), theme.colorScheme.background]
-              : [theme.colorScheme.primary.withOpacity(0.1), theme.colorScheme.background],
+              : [theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.background],
           ),
         ),
         child: SafeArea(
@@ -50,9 +92,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
+                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
                   ),
                   child: Icon(Icons.sensors, color: theme.colorScheme.primary, size: 32),
                 ),
@@ -71,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
-                    color: theme.colorScheme.primary.withOpacity(0.7),
+                    color: theme.colorScheme.onBackground.withValues(alpha: 0.7),
                     letterSpacing: 3.0,
                   ),
                 ),
@@ -82,10 +124,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+                    border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
                     boxShadow: isDark ? [] : [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       )
@@ -107,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Ingresa tus credenciales para continuar con el monitoreo.',
                         style: TextStyle(
                           fontSize: 14,
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -160,37 +202,40 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 32),
                       
-                      ElevatedButton(
-                        onPressed: viewModel.isLoading
-                            ? null
-                            : () async {
-                                await viewModel.login(
-                                  email: _emailController.text,
-                                  password: _passwordController.text,
-                                );
-                                if (mounted) {
-                                  if (viewModel.error == null) {
-                                    Navigator.pushReplacementNamed(context, '/home');
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(viewModel.error!),
-                                        backgroundColor: Colors.redAccent,
-                                      ),
-                                    );
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: viewModel.isLoading
+                              ? null
+                              : () async {
+                                  await viewModel.login(
+                                    email: _emailController.text,
+                                    password: _passwordController.text,
+                                  );
+                                  if (mounted) {
+                                    if (viewModel.error == null) {
+                                      Navigator.pushReplacementNamed(context, '/home');
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(viewModel.error!),
+                                          backgroundColor: theme.colorScheme.error,
+                                        ),
+                                      );
+                                    }
                                   }
-                                }
-                              },
-                        child: viewModel.isLoading
-                            ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
-                            : const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('Iniciar Sesión'),
-                                  SizedBox(width: 8),
-                                  Icon(Icons.login, size: 20),
-                                ],
-                              ),
+                                },
+                          child: viewModel.isLoading
+                              ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('Iniciar Sesión'),
+                                    SizedBox(width: 8),
+                                    Icon(Icons.login, size: 20),
+                                  ],
+                                ),
+                        ),
                       ),
                     ],
                   ),
@@ -201,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Text(
                       '¿No tienes una cuenta? ',
-                      style: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.6)),
+                      style: TextStyle(color: theme.colorScheme.onBackground.withValues(alpha: 0.6)),
                     ),
                     TextButton(
                       onPressed: () {
@@ -224,12 +269,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildTextFieldLabel(BuildContext context, String label) {
+    final theme = Theme.of(context);
     return Row(
       children: [
         Icon(
           label.contains('CORREO') ? Icons.email_outlined : Icons.lock_outline,
           size: 14,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
         ),
         const SizedBox(width: 6),
         Text(
@@ -237,7 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             letterSpacing: 1.1,
           ),
         ),

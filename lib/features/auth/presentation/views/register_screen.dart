@@ -39,7 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             end: Alignment.bottomCenter,
             colors: isDark 
               ? [const Color(0xFF0D1B2A), theme.colorScheme.background]
-              : [theme.colorScheme.primary.withOpacity(0.1), theme.colorScheme.background],
+              : [theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.background],
           ),
         ),
         child: SafeArea(
@@ -52,11 +52,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
+                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
                   ),
-                  child: Icon(Icons.hexagon_outlined, color: theme.colorScheme.primary, size: 40),
+                  child: Icon(Icons.sensors, color: theme.colorScheme.primary, size: 40),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -75,10 +75,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+                    border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
                     boxShadow: isDark ? [] : [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       )
@@ -101,7 +101,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -138,26 +138,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 32),
                       
-                      ElevatedButton(
-                        onPressed: viewModel.isLoading
-                            ? null
-                            : () {
-                                viewModel.register(
-                                  fullName: _fullNameController.text,
-                                  email: _emailController.text,
-                                  password: _passwordController.text,
-                                );
-                              },
-                        child: viewModel.isLoading
-                            ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
-                            : const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('Registrarse'),
-                                  SizedBox(width: 8),
-                                  Icon(Icons.arrow_forward, size: 18),
-                                ],
-                              ),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: viewModel.isLoading
+                              ? null
+                              : () async {
+                                  await viewModel.register(
+                                    fullName: _fullNameController.text,
+                                    email: _emailController.text,
+                                    password: _passwordController.text,
+                                  );
+                                  if (mounted) {
+                                    if (viewModel.error == null) {
+                                      Navigator.pushReplacementNamed(context, '/home');
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(viewModel.error!),
+                                          backgroundColor: theme.colorScheme.error,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                          child: viewModel.isLoading
+                              ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('Registrarse'),
+                                    SizedBox(width: 8),
+                                    Icon(Icons.arrow_forward, size: 18),
+                                  ],
+                                ),
+                        ),
                       ),
                     ],
                   ),
@@ -168,7 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Text(
                       '¿Ya tienes una cuenta? ',
-                      style: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.6)),
+                      style: TextStyle(color: theme.colorScheme.onBackground.withValues(alpha: 0.6)),
                     ),
                     TextButton(
                       onPressed: () {
@@ -204,14 +219,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
-            letterSpacing: 1.1,
-          ),
+        Row(
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                letterSpacing: 1.1,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         TextField(
@@ -220,12 +245,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           style: TextStyle(color: theme.colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, size: 20),
+            prefixIcon: Icon(icon, size: 18),
             suffixIcon: isPassword
                 ? IconButton(
                     icon: Icon(
                       obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      size: 20,
+                      size: 18,
                     ),
                     onPressed: onSuffixIconPressed,
                   )
