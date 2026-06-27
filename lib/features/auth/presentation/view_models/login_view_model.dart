@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/use_cases/login_use_case.dart';
+import '../../data/sources/auth_api_service.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final LoginUseCase loginUseCase;
@@ -26,7 +27,11 @@ class LoginViewModel extends ChangeNotifier {
         password: password,
       );
     } catch (e) {
-      _error = e.toString();
+      if (e is AuthException) {
+        _error = e.message;
+      } else {
+        _error = "Ocurrió un error inesperado. Inténtalo de nuevo.";
+      }
     } finally {
       _isLoading = false;
       notifyListeners();

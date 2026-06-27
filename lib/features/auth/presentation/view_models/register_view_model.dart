@@ -13,9 +13,11 @@ class RegisterViewModel extends ChangeNotifier {
   String? get error => _error;
 
   Future<void> register({
-    required String fullName,
+    required String nombreEmpresa,
+    required String rfc,
     required String email,
     required String password,
+    String? telefono,
   }) async {
     _isLoading = true;
     _error = null;
@@ -23,9 +25,11 @@ class RegisterViewModel extends ChangeNotifier {
 
     try {
       await registerUseCase.execute(
-        fullName: fullName,
+        nombreEmpresa: nombreEmpresa,
+        rfc: rfc,
         email: email,
         password: password,
+        telefono: telefono,
       );
     } catch (e) {
       _error = e.toString();
