@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:device_preview/device_preview.dart';
 import 'core/theme/app_theme.dart';
+import 'core/security/security_service.dart';
 
-// Auth Feature (Raul)
+// Auth Feature
 import 'features/auth/data/repositories/mock_auth_repository.dart';
 import 'features/auth/domain/use_cases/register_use_case.dart';
 import 'features/auth/domain/use_cases/login_use_case.dart';
@@ -12,7 +13,7 @@ import 'features/auth/presentation/view_models/login_view_model.dart';
 import 'features/auth/presentation/views/register_screen.dart';
 import 'features/auth/presentation/views/login_screen.dart';
 
-// Monitoring & Records Features (Keren)
+// Monitoring & Records
 import 'features/monitoring/data/repositories/mock_monitoring_repository.dart';
 import 'features/monitoring/presentation/view_models/monitoring_view_model.dart';
 import 'features/monitoring/presentation/views/monitoring_screen.dart';
@@ -23,14 +24,20 @@ import 'features/community/data/repositories/mock_community_repository.dart';
 import 'features/community/presentation/view_models/community_view_model.dart';
 import 'features/community/presentation/views/community_screen.dart';
 
-// Profile Feature (Adriana)
+// Profile
 import 'features/profile/data/repositories/mock_profile_repository.dart';
 import 'features/profile/domain/use_cases/get_profile_use_case.dart';
 import 'features/profile/domain/use_cases/update_preferences_use_case.dart';
 import 'features/profile/presentation/view_models/profile_view_model.dart';
 import 'features/profile/presentation/views/profile_screen.dart';
 
-void main() {
+void main() async {
+  // Asegurar que los bindings de Flutter estén inicializados
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // PASO 1 SEGURIDAD: Bloqueo de capturas de pantalla y grabaciones
+  await SecurityService.setupScreenProtection();
+
   // Repositories
   final authRepository = MockAuthRepository();
   final monitoringRepository = MockMonitoringRepository();
@@ -43,14 +50,11 @@ void main() {
       enabled: true,
       builder: (context) => MultiProvider(
         providers: [
-          // Auth
           ChangeNotifierProvider(create: (_) => RegisterViewModel(registerUseCase: RegisterUseCase(authRepository))),
           ChangeNotifierProvider(create: (_) => LoginViewModel(loginUseCase: LoginUseCase(authRepository))),
-          // Core features
           ChangeNotifierProvider(create: (_) => MonitoringViewModel(repository: monitoringRepository)),
           ChangeNotifierProvider(create: (_) => HistoryViewModel(repository: historyRepository)),
           ChangeNotifierProvider(create: (_) => CommunityViewModel(repository: communityRepository)),
-          // Profile
           ChangeNotifierProvider(create: (_) => ProfileViewModel(
             getProfileUseCase: GetProfileUseCase(profileRepository),
             updatePreferencesUseCase: UpdatePreferencesUseCase(profileRepository),
