@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:neurodrive/core/security/security_service.dart';
 import '../view_models/register_view_model.dart';
@@ -38,18 +40,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 Icon(Icons.security, color: Theme.of(context).colorScheme.error),
                 const SizedBox(width: 10),
-                const Text('Bloqueo de Seguridad'),
+                const Text('Seguridad'),
               ],
             ),
-            content: Text(errorMessage, style: const TextStyle(fontSize: 14)),
+            content: Text(errorMessage),
             actions: [
               ElevatedButton(
-                onPressed: () => exit(0),
+                onPressed: () {
+                  if (kIsWeb) {
+                    Navigator.of(context).pop();
+                  } else {
+                    SystemNavigator.pop();
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
-                  foregroundColor: Theme.of(context).colorScheme.onError,
+                  foregroundColor: Colors.white,
                 ),
-                child: const Text('CERRAR APLICACIÓN'),
+                child: const Text('CERRAR'),
               ),
             ],
           ),
@@ -92,16 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 40),
-                // Logo
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
-                  ),
-                  child: Icon(Icons.sensors, color: theme.colorScheme.primary, size: 32),
-                ),
+                Icon(Icons.sensors, color: theme.colorScheme.primary, size: 48),
                 const SizedBox(height: 16),
                 Text(
                   'NeuroDrive',
@@ -113,23 +112,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                // Registration Card
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
-                    boxShadow: isDark ? [] : [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      )
-                    ],
+                    border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Crea tu cuenta',
@@ -142,7 +133,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 8),
                       Text(
                         'Únete a la red de conductores seguros',
-                        textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
                           color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
@@ -150,111 +140,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 32),
                       
-                      _buildTextField(
-                        context,
-                        label: 'NOMBRE EMPRESA / PERSONAL',
-                        hint: 'Ej. Carlos Mendoza',
-                        icon: Icons.business_outlined,
+                      _buildLabel('NOMBRE EMPRESA / PERSONAL', Icons.business_outlined),
+                      TextField(
                         controller: _nombreEmpresaController,
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        decoration: const InputDecoration(hintText: 'Ej. Carlos Mendoza'),
                       ),
                       const SizedBox(height: 20),
 
-                      _buildTextField(
-                        context,
-                        label: 'RFC',
-                        hint: 'RFC123456789',
-                        icon: Icons.badge_outlined,
+                      _buildLabel('RFC', Icons.badge_outlined),
+                      TextField(
                         controller: _rfcController,
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        decoration: const InputDecoration(hintText: 'RFC123456789'),
                       ),
                       const SizedBox(height: 20),
                       
-                      _buildTextField(
-                        context,
-                        label: 'CORREO ELECTRÓNICO',
-                        hint: 'carlos@ejemplo.com',
-                        icon: Icons.email_outlined,
+                      _buildLabel('CORREO ELECTRÓNICO', Icons.email_outlined),
+                      TextField(
                         controller: _emailController,
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        decoration: const InputDecoration(hintText: 'carlos@ejemplo.com'),
                       ),
                       const SizedBox(height: 20),
                       
-                      _buildTextField(
-                        context,
-                        label: 'CONTRASEÑA',
-                        hint: '••••••••',
-                        icon: Icons.lock_outline,
+                      _buildLabel('CONTRASEÑA', Icons.lock_outline),
+                      TextField(
                         controller: _passwordController,
-                        isPassword: true,
                         obscureText: _obscurePassword,
-                        onSuffixIconPressed: () {
-                          setState(() => _obscurePassword = !_obscurePassword);
-                        },
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        decoration: InputDecoration(
+                          hintText: '••••••••',
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 32),
                       
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: viewModel.isLoading
-                              ? null
-                              : () async {
-                                  await viewModel.register(
-                                    nombreEmpresa: _nombreEmpresaController.text,
-                                    rfc: _rfcController.text,
-                                    email: _emailController.text,
-                                    password: _passwordController.text,
-                                  );
-                                  if (mounted) {
-                                    if (viewModel.error == null) {
-                                      Navigator.pushReplacementNamed(context, '/login');
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Registro exitoso. Inicia sesión.'),
-                                          backgroundColor: Colors.green,
-                                        ),
-                                      );
-                                    } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(viewModel.error!),
-                                          backgroundColor: theme.colorScheme.error,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
-                          child: viewModel.isLoading
-                              ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
-                              : const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text('Registrarse'),
-                                    SizedBox(width: 8),
-                                    Icon(Icons.arrow_forward, size: 18),
-                                  ],
-                                ),
+                          onPressed: viewModel.isLoading ? null : () async {
+                            await viewModel.register(
+                              nombreEmpresa: _nombreEmpresaController.text,
+                              rfc: _rfcController.text,
+                              email: _emailController.text,
+                              password: _passwordController.text,
+                            );
+                            if (mounted && viewModel.error == null) {
+                              Navigator.pushReplacementNamed(context, '/login');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Registro exitoso. Inicia sesión.'), backgroundColor: Colors.green),
+                              );
+                            } else if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(viewModel.error!), backgroundColor: theme.colorScheme.error),
+                              );
+                            }
+                          },
+                          child: viewModel.isLoading 
+                            ? const CircularProgressIndicator() 
+                            : const Text('Registrarse'),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '¿Ya tienes una cuenta? ',
-                      style: TextStyle(color: theme.colorScheme.onBackground.withValues(alpha: 0.6)),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/login');
-                      },
-                      child: Text(
-                        'Iniciar Sesión',
-                        style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/login'),
+                  child: Text('¿Ya tienes cuenta? Inicia Sesión', style: TextStyle(color: theme.colorScheme.primary)),
                 ),
                 const SizedBox(height: 20),
               ],
@@ -265,59 +221,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildTextField(
-    BuildContext context, {
-    required String label,
-    required String hint,
-    required IconData icon,
-    required TextEditingController controller,
-    bool isPassword = false,
-    bool obscureText = false,
-    VoidCallback? onSuffixIconPressed,
-  }) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              icon,
-              size: 14,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                letterSpacing: 1.1,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          obscureText: obscureText,
-          style: TextStyle(color: theme.colorScheme.onSurface),
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: Icon(icon, size: 18),
-            suffixIcon: isPassword
-                ? IconButton(
-                    icon: Icon(
-                      obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      size: 18,
-                    ),
-                    onPressed: onSuffixIconPressed,
-                  )
-                : null,
-          ),
-        ),
-      ],
-    );
+  Widget _buildLabel(String text, IconData icon) {
+    return Row(children: [
+      Icon(icon, size: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+      const SizedBox(width: 8),
+      Text(text, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
+    ]);
   }
 }
