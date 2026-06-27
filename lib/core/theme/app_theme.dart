@@ -28,13 +28,11 @@ class AppTheme {
         brightness: Brightness.dark,
         primary: cyanNeuroDrive,
         onPrimary: Colors.black,
-        secondary: cyanNeuroDrive,
         surface: darkSurface,
         onSurface: darkTextPrimary,
         background: darkBackground,
         onBackground: darkTextPrimary,
         error: darkError,
-        onError: Colors.black,
       ),
       scaffoldBackgroundColor: darkBackground,
       inputDecorationTheme: InputDecorationTheme(
@@ -54,7 +52,6 @@ class AppTheme {
         ),
         hintStyle: TextStyle(color: darkTextPrimary.withValues(alpha: 0.38)),
         prefixIconColor: darkTextPrimary.withValues(alpha: 0.54),
-        suffixIconColor: darkTextPrimary.withValues(alpha: 0.54),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -79,13 +76,11 @@ class AppTheme {
         brightness: Brightness.light,
         primary: lightActionPrimary,
         onPrimary: Colors.white,
-        secondary: cyanNeuroDrive,
         surface: lightSurface,
         onSurface: lightTextPrimary,
         background: lightBackground,
         onBackground: lightTextPrimary,
         error: lightError,
-        onError: Colors.white,
       ),
       scaffoldBackgroundColor: lightBackground,
       inputDecorationTheme: InputDecorationTheme(
@@ -105,7 +100,6 @@ class AppTheme {
         ),
         hintStyle: TextStyle(color: lightTextPrimary.withValues(alpha: 0.38)),
         prefixIconColor: lightTextPrimary.withValues(alpha: 0.54),
-        suffixIconColor: lightTextPrimary.withValues(alpha: 0.54),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
