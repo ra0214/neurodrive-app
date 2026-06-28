@@ -6,14 +6,18 @@ class RegisterUseCase {
   RegisterUseCase(this.repository);
 
   Future<void> execute({
-    required String fullName,
+    required String nombreEmpresa,
+    required String rfc,
     required String email,
     required String password,
+    String? telefono,
   }) {
     return repository.register(
-      fullName: fullName,
+      nombreEmpresa: nombreEmpresa,
+      rfc: rfc,
       email: email,
       password: password,
+      telefono: telefono,
     );
   }
 }

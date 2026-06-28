@@ -1,31 +1,38 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Common Colors
-  static const Color primaryCyan = Color(0xFF00E5FF);
+  // Brand Colors
+  static const Color cyanNeuroDrive = Color(0xFF00F1FE);
   
-  // Dark Theme Colors
-  static const Color darkBackground = Color(0xFF0B1220);
-  static const Color darkSurface = Color(0xFF161D2D);
-  static const Color darkInputFill = Color(0xFF1E2738);
-
   // Light Theme Colors
-  static const Color lightBackground = Color(0xFFF8FAFC);
+  static const Color lightActionPrimary = Color(0xFF007A82);
+  static const Color lightBackground = Color(0xFFF7F9FB);
   static const Color lightSurface = Colors.white;
-  static const Color lightPrimary = Color(0xFF0F172A); 
+  static const Color lightTextPrimary = Color(0xFF191C1D);
+  static const Color lightError = Color(0xFFBA1A1A);
   static const Color lightInputFill = Color(0xFFF1F5F9);
+
+  // Dark Theme Colors
+  static const Color darkBackground = Color(0xFF08132A);
+  static const Color darkSurface = Color(0xFF101B33);
+  static const Color darkTextPrimary = Color(0xFFD9E2FF);
+  static const Color darkError = Color(0xFFFFB4AB);
+  static const Color darkInputFill = Color(0xFF1E2738);
 
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryCyan,
+        seedColor: cyanNeuroDrive,
         brightness: Brightness.dark,
-        primary: primaryCyan,
+        primary: cyanNeuroDrive,
         onPrimary: Colors.black,
         surface: darkSurface,
-        onSurface: Colors.white,
+        onSurface: darkTextPrimary,
+        background: darkBackground,
+        onBackground: darkTextPrimary,
+        error: darkError,
       ),
       scaffoldBackgroundColor: darkBackground,
       inputDecorationTheme: InputDecorationTheme(
@@ -41,17 +48,16 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primaryCyan, width: 1),
+          borderSide: const BorderSide(color: cyanNeuroDrive, width: 1),
         ),
-        hintStyle: const TextStyle(color: Colors.white38),
-        prefixIconColor: Colors.white54,
-        suffixIconColor: Colors.white54,
+        hintStyle: TextStyle(color: darkTextPrimary.withValues(alpha: 0.38)),
+        prefixIconColor: darkTextPrimary.withValues(alpha: 0.54),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryCyan,
+          backgroundColor: cyanNeuroDrive,
           foregroundColor: Colors.black,
-          minimumSize: const Size(88, 56), // Removed double.infinity to avoid crashes in Rows
+          minimumSize: const Size(88, 56),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -66,12 +72,15 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: lightPrimary,
+        seedColor: lightActionPrimary,
         brightness: Brightness.light,
-        primary: lightPrimary,
+        primary: lightActionPrimary,
         onPrimary: Colors.white,
         surface: lightSurface,
-        onSurface: const Color(0xFF1E293B),
+        onSurface: lightTextPrimary,
+        background: lightBackground,
+        onBackground: lightTextPrimary,
+        error: lightError,
       ),
       scaffoldBackgroundColor: lightBackground,
       inputDecorationTheme: InputDecorationTheme(
@@ -87,17 +96,16 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: lightPrimary, width: 1),
+          borderSide: const BorderSide(color: lightActionPrimary, width: 1),
         ),
-        hintStyle: const TextStyle(color: Colors.black38),
-        prefixIconColor: Colors.black45,
-        suffixIconColor: Colors.black45,
+        hintStyle: TextStyle(color: lightTextPrimary.withValues(alpha: 0.38)),
+        prefixIconColor: lightTextPrimary.withValues(alpha: 0.54),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: lightPrimary,
+          backgroundColor: lightActionPrimary,
           foregroundColor: Colors.white,
-          minimumSize: const Size(88, 56), // Removed double.infinity
+          minimumSize: const Size(88, 56),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

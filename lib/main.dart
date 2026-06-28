@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:device_preview/device_preview.dart';
 import 'core/theme/app_theme.dart';
+import 'core/security/security_service.dart';
+import 'core/security/token_storage.dart';
 
-// Auth Feature (Raul)
-import 'features/auth/data/repositories/mock_auth_repository.dart';
+// Auth Feature
+import 'features/auth/data/sources/auth_api_service.dart';
+import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/use_cases/register_use_case.dart';
 import 'features/auth/domain/use_cases/login_use_case.dart';
 import 'features/auth/presentation/view_models/register_view_model.dart';
@@ -12,7 +15,7 @@ import 'features/auth/presentation/view_models/login_view_model.dart';
 import 'features/auth/presentation/views/register_screen.dart';
 import 'features/auth/presentation/views/login_screen.dart';
 
-// Monitoring & Records Features (Keren)
+// Monitoring & Records
 import 'features/monitoring/data/repositories/mock_monitoring_repository.dart';
 import 'features/monitoring/presentation/view_models/monitoring_view_model.dart';
 import 'features/monitoring/presentation/views/monitoring_screen.dart';
@@ -23,16 +26,29 @@ import 'features/community/data/repositories/mock_community_repository.dart';
 import 'features/community/presentation/view_models/community_view_model.dart';
 import 'features/community/presentation/views/community_screen.dart';
 
-// Profile Feature (Adriana)
+// Profile
 import 'features/profile/data/repositories/mock_profile_repository.dart';
 import 'features/profile/domain/use_cases/get_profile_use_case.dart';
 import 'features/profile/domain/use_cases/update_preferences_use_case.dart';
 import 'features/profile/presentation/view_models/profile_view_model.dart';
 import 'features/profile/presentation/views/profile_screen.dart';
 
-void main() {
-  // Repositories
-  final authRepository = MockAuthRepository();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Seguridad
+  await SecurityService.setupScreenProtection();
+
+  // API & Storage
+  final authApiService = AuthApiService();
+  final tokenStorage = TokenStorage();
+
+  // Repositories (Auth Real, otros Mock)
+  final authRepository = AuthRepositoryImpl(
+    apiService: authApiService,
+    tokenStorage: tokenStorage,
+  );
+
   final monitoringRepository = MockMonitoringRepository();
   final historyRepository = MockHistoryRepository();
   final communityRepository = MockCommunityRepository();
@@ -43,14 +59,11 @@ void main() {
       enabled: true,
       builder: (context) => MultiProvider(
         providers: [
-          // Auth
           ChangeNotifierProvider(create: (_) => RegisterViewModel(registerUseCase: RegisterUseCase(authRepository))),
           ChangeNotifierProvider(create: (_) => LoginViewModel(loginUseCase: LoginUseCase(authRepository))),
-          // Core features
           ChangeNotifierProvider(create: (_) => MonitoringViewModel(repository: monitoringRepository)),
           ChangeNotifierProvider(create: (_) => HistoryViewModel(repository: historyRepository)),
           ChangeNotifierProvider(create: (_) => CommunityViewModel(repository: communityRepository)),
-          // Profile
           ChangeNotifierProvider(create: (_) => ProfileViewModel(
             getProfileUseCase: GetProfileUseCase(profileRepository),
             updatePreferencesUseCase: UpdatePreferencesUseCase(profileRepository),
