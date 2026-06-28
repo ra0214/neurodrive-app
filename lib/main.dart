@@ -21,7 +21,9 @@ import 'features/history/presentation/view_models/history_view_models.dart';
 import 'features/history/presentation/views/history_screen.dart';
 import 'features/community/data/repositories/mock_community_repository.dart';
 import 'features/community/presentation/view_models/community_view_model.dart';
+import 'features/community/presentation/view_models/feedback_provider.dart';
 import 'features/community/presentation/views/community_screen.dart';
+import 'features/community/presentation/views/community_feed_screen.dart';
 
 // Profile Feature (Adriana)
 import 'features/profile/data/repositories/mock_profile_repository.dart';
@@ -50,6 +52,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => MonitoringViewModel(repository: monitoringRepository)),
           ChangeNotifierProvider(create: (_) => HistoryViewModel(repository: historyRepository)),
           ChangeNotifierProvider(create: (_) => CommunityViewModel(repository: communityRepository)),
+          ChangeNotifierProvider(create: (_) => FeedbackProvider()),
           // Profile
           ChangeNotifierProvider(create: (_) => ProfileViewModel(
             getProfileUseCase: GetProfileUseCase(profileRepository),
@@ -102,7 +105,7 @@ class _MainContainerState extends State<MainContainer> {
     final List<Widget> screens = [
       MonitoringScreen(viewModel: context.read<MonitoringViewModel>()),
       HistoryScreen(viewModel: context.read<HistoryViewModel>()),
-      CommunityScreen(viewModel: context.read<CommunityViewModel>()),
+      const CommunityFeedScreen(),
       const Center(child: Text('Alertas')),
     ];
 
