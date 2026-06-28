@@ -8,10 +8,10 @@ class SecurityService {
 
   /// Configura la protección contra capturas de pantalla
   static Future<void> setupScreenProtection() async {
-    if (kIsWeb) return; // No hace nada en Web
+    if (kIsWeb) return; 
     
     try {
-      // Usamos el nuevo plugin ScreenProtector que es compatible
+      // screen_protector es compatible con tu versión de Flutter
       await ScreenProtector.preventScreenshotOn();
     } catch (e) {
       debugPrint('Error configurando protección de pantalla: $e');
@@ -20,7 +20,7 @@ class SecurityService {
 
   /// Verifica si el dispositivo es seguro (Solo Móvil)
   static Future<String?> checkDeviceSecurity() async {
-    if (kDebugMode || kIsWeb) return null; // No bloquea en modo Debug o Web
+    if (kDebugMode || kIsWeb) return null;
 
     try {
       if (defaultTargetPlatform == TargetPlatform.android) {
