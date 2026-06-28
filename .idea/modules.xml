@@ -2,6 +2,21 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/android.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/android.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/android.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/android.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/android.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/android.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/android.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/android.app.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/27871371/android.jni.iml" filepath="$PROJECT_DIR$/.idea/modules/27871371/android.jni.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/27871371/android.jni.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/27871371/android.jni.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/27871371/android.jni.main.iml" filepath="$PROJECT_DIR$/.idea/modules/27871371/android.jni.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/27871371/android.jni.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/27871371/android.jni.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1478976343/android.jni_flutter.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/-1478976343/android.jni_flutter.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1478976343/android.jni_flutter.main.iml" filepath="$PROJECT_DIR$/.idea/modules/-1478976343/android.jni_flutter.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1478976343/android.jni_flutter.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/-1478976343/android.jni_flutter.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-587125036/android.shared_preferences_android.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/-587125036/android.shared_preferences_android.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-587125036/android.shared_preferences_android.main.iml" filepath="$PROJECT_DIR$/.idea/modules/-587125036/android.shared_preferences_android.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-587125036/android.shared_preferences_android.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/-587125036/android.shared_preferences_android.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1355748797/gradle.iml" filepath="$PROJECT_DIR$/.idea/modules/-1355748797/gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/neurodrive-app.iml" filepath="$PROJECT_DIR$/.idea/neurodrive-app.iml" />
     </modules>
   </component>

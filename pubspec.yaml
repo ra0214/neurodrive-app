@@ -16,11 +16,11 @@ dependencies:
   http: ^1.2.1
   intl: ^0.20.2
   cupertino_icons: ^1.0.8
-  flutter_secure_storage: ^9.0.0
+  flutter_secure_storage: ^9.2.4
   
-  # Seguridad
-  flutter_windowmanager: ^0.2.0
-  safe_device: ^1.1.4
+  # Seguridad moderna y compatible
+  screen_protector: ^1.5.1
+  safe_device: ^1.1.6
 
 dev_dependencies:
   flutter_test:

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="android.screen_protector" target="21" />
+      <module name="com.it_nomads.fluttersecurestorage.android.flutter_secure_storage" target="21" />
+      <module name="io.flutter.plugins.sharedpreferences.android.shared_preferences_android" target="21" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

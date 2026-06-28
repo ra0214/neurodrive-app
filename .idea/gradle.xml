@@ -7,9 +7,9 @@
         <compositeConfiguration>
           <compositeBuild compositeDefinitionSource="SCRIPT">
             <builds>
-              <build path="$PROJECT_DIR$/../../../../src/flutter/packages/flutter_tools/gradle" name="gradle">
+              <build path="$USER_HOME$/flutter/packages/flutter_tools/gradle" name="gradle">
                 <projects>
-                  <project path="$PROJECT_DIR$/../../../../src/flutter/packages/flutter_tools/gradle" />
+                  <project path="$USER_HOME$/flutter/packages/flutter_tools/gradle" />
                 </projects>
               </build>
             </builds>
@@ -22,10 +22,13 @@
           <set>
             <option value="$PROJECT_DIR$/android" />
             <option value="$PROJECT_DIR$/android/app" />
+            <option value="$USER_HOME$/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_secure_storage-9.2.4/android" />
+            <option value="$USER_HOME$/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_windowmanager-0.2.0/android" />
             <option value="$USER_HOME$/AppData/Local/Pub/Cache/hosted/pub.dev/jni-1.0.0/android" />
             <option value="$USER_HOME$/AppData/Local/Pub/Cache/hosted/pub.dev/jni_flutter-1.0.1/android" />
+            <option value="$USER_HOME$/AppData/Local/Pub/Cache/hosted/pub.dev/safe_device-1.4.0/android" />
             <option value="$USER_HOME$/AppData/Local/Pub/Cache/hosted/pub.dev/shared_preferences_android-2.4.23/android" />
-            <option value="$PROJECT_DIR$/../../../../src/flutter/packages/flutter_tools/gradle" />
+            <option value="$USER_HOME$/flutter/packages/flutter_tools/gradle" />
           </set>
         </option>
       </GradleProjectSettings>

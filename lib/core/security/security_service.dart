@@ -1,20 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:screen_protector/screen_protector.dart';
 import 'package:safe_device/safe_device.dart';
 
 class SecurityService {
   static const _channel = MethodChannel('com.neurodrive.security/checks');
 
-  /// Configura la protección contra capturas de pantalla (Solo Android)
+  /// Configura la protección contra capturas de pantalla
   static Future<void> setupScreenProtection() async {
     if (kIsWeb) return; // No hace nada en Web
     
     try {
-      // Usamos defaultTargetPlatform para evitar errores de dart:io en Web
-      if (defaultTargetPlatform == TargetPlatform.android) {
-        await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-      }
+      // Usamos el nuevo plugin ScreenProtector que es compatible
+      await ScreenProtector.preventScreenshotOn();
     } catch (e) {
       debugPrint('Error configurando protección de pantalla: $e');
     }
