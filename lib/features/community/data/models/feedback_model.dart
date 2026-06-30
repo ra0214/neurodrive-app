@@ -1,45 +1,51 @@
 class FeedbackModel {
-  final int id;
-  final int idAutor;
+  final int? id;
   final String nombreRuta;
   final int nivelPeligro;
   final String comentario;
+  final String autor;
   final DateTime fecha;
 
   FeedbackModel({
-    required this.id,
-    required this.idAutor,
+    this.id,
     required this.nombreRuta,
     required this.nivelPeligro,
     required this.comentario,
+    required this.autor,
     required this.fecha,
   });
 
   factory FeedbackModel.fromJson(Map<String, dynamic> json) {
     return FeedbackModel(
-      id: json['id'] ?? 0,
-      idAutor: json['id_autor'] ?? 0,
+      id: json['id'],
       nombreRuta: json['nombre_ruta'] ?? '',
       nivelPeligro: json['nivel_peligro'] ?? 1,
       comentario: json['comentario'] ?? '',
-      fecha: DateTime.parse(json['fecha'] ?? DateTime.now().toIso8601String()),
+      autor: json['autor'] ?? 'Compañero Chofer',
+      fecha: json['fecha'] != null 
+          ? DateTime.parse(json['fecha']) 
+          : DateTime.now(),
     );
   }
 }
 
 class FeedbackResponse {
   final List<FeedbackModel> feedbacks;
-  final int total;
 
-  FeedbackResponse({required this.feedbacks, required this.total});
+  FeedbackResponse({required this.feedbacks});
 
-  factory FeedbackResponse.fromJson(Map<String, dynamic> json) {
-    return FeedbackResponse(
-      feedbacks: (json['feedback'] as List)
-          .map((i) => FeedbackModel.fromJson(i))
-          .toList(),
-      total: json['total'] ?? 0,
-    );
+  factory FeedbackResponse.fromJson(dynamic json) {
+    if (json is List) {
+      return FeedbackResponse(
+        feedbacks: json.map((i) => FeedbackModel.fromJson(i as Map<String, dynamic>)).toList(),
+      );
+    } else if (json is Map<String, dynamic> && json.containsKey('feedback')) {
+      final list = json['feedback'] as List?;
+      return FeedbackResponse(
+        feedbacks: list?.map((i) => FeedbackModel.fromJson(i as Map<String, dynamic>)).toList() ?? [],
+      );
+    }
+    return FeedbackResponse(feedbacks: []);
   }
 }
 
@@ -56,6 +62,7 @@ class FeedbackRequest {
     required this.comentario,
   });
 
+  // Volvemos a incluir id_autor ya que la API de producción lo requiere obligatoriamente.
   Map<String, dynamic> toJson() => {
         "id_autor": idAutor,
         "nombre_ruta": nombreRuta,

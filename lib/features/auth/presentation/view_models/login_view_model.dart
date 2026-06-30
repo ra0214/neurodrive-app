@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/use_cases/login_use_case.dart';
-import '../../data/sources/auth_api_service.dart';
+import '../../data/models/auth_models.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final LoginUseCase loginUseCase;
@@ -13,8 +13,8 @@ class LoginViewModel extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  Future<void> login({
-    required String email,
+  Future<LoginResponse?> login({
+    required String numeroLicencia,
     required String password,
   }) async {
     _isLoading = true;
@@ -22,16 +22,14 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await loginUseCase.execute(
-        email: email,
+      final response = await loginUseCase.execute(
+        numeroLicencia: numeroLicencia,
         password: password,
       );
+      return response;
     } catch (e) {
-      if (e is AuthException) {
-        _error = e.message;
-      } else {
-        _error = "Ocurrió un error inesperado. Inténtalo de nuevo.";
-      }
+      _error = e.toString().replaceAll("Exception: ", "");
+      return null;
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:neurodrive/features/auth/presentation/view_models/login_view_model.dart';
-import 'package:neurodrive/core/security/security_service.dart';
+import '../view_models/login_view_model.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,51 +10,45 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _licenciaController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
-  void initState() {
-    super.initState();
-    _checkSecurity();
+  void dispose() {
+    _licenciaController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
-  Future<void> _checkSecurity() async {
-    final String? errorMessage = await SecurityService.checkDeviceSecurity();
-    if (errorMessage != null && mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => PopScope(
-          canPop: false,
-          child: AlertDialog(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            title: Row(
-              children: [
-                Icon(Icons.security, color: Theme.of(context).colorScheme.error),
-                const SizedBox(width: 10),
-                const Text('Seguridad'),
-              ],
-            ),
-            content: Text(errorMessage),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  if (kIsWeb) {
-                    Navigator.of(context).pop();
-                  } else {
-                    SystemNavigator.pop();
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('CERRAR'),
-              ),
-            ],
-          ),
+  Future<void> _handleLogin() async {
+    if (_licenciaController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor, ingresa tu licencia y PIN")),
+      );
+      return;
+    }
+
+    final viewModel = context.read<LoginViewModel>();
+    final response = await viewModel.login(
+      numeroLicencia: _licenciaController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (response != null) {
+      if (response.requiereCambioPassword) {
+        Navigator.pushReplacementNamed(context, '/change-password');
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } else if (viewModel.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(viewModel.error!),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -65,83 +56,129 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<LoginViewModel>();
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isLoading = context.watch<LoginViewModel>().isLoading;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? [const Color(0xFF08132A), const Color(0xFF0D1B2A)]
-                : [theme.colorScheme.primary.withValues(alpha: 0.05), theme.colorScheme.background],
-          ),
-        ),
-        child: SafeArea(
+      backgroundColor: theme.colorScheme.background,
+      body: SafeArea(
+        child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 60),
-                Icon(Icons.sensors, color: theme.colorScheme.primary, size: 48),
+                // Identidad Visual
+                Icon(Icons.directions_car_filled_rounded, size: 80, color: theme.colorScheme.primary),
                 const SizedBox(height: 16),
-                Text('NeuroDrive', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
-                Text('THE SILENT GUARDIAN', style: TextStyle(fontSize: 10, letterSpacing: 3, color: theme.colorScheme.onBackground.withValues(alpha: 0.6))),
-                const SizedBox(height: 60),
+                Text(
+                  "NeuroDrive",
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const Text(
+                  "PORTAL EXCLUSIVO PARA CHOFERES",
+                  style: TextStyle(fontSize: 10, letterSpacing: 2, color: Colors.white54),
+                ),
+                const SizedBox(height: 48),
+
+                // Card de Login
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: Colors.white10),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Bienvenido', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+                      const Text(
+                        "Bienvenido de nuevo",
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
                       const SizedBox(height: 8),
-                      Text('Ingresa tus credenciales para continuar.', style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                      const Text(
+                        "Usa tus credenciales asignadas por la empresa.",
+                        style: TextStyle(color: Colors.white60, fontSize: 13),
+                      ),
                       const SizedBox(height: 32),
-                      _buildLabel('CORREO ELECTRÓNICO', Icons.email_outlined),
-                      TextField(controller: _emailController, decoration: const InputDecoration(hintText: 'usuario@neurodrive.ai')),
+
+                      // Campo Licencia
+                      _buildLabel("NÚMERO DE LICENCIA"),
+                      TextField(
+                        controller: _licenciaController,
+                        style: const TextStyle(fontSize: 16),
+                        decoration: InputDecoration(
+                          hintText: "Ej: ABC123456",
+                          prefixIcon: const Icon(Icons.badge_outlined),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 24),
-                      _buildLabel('CONTRASEÑA', Icons.lock_outline),
+
+                      // Campo PIN
+                      _buildLabel("PIN DE ACCESO"),
                       TextField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
+                        style: const TextStyle(fontSize: 16),
                         decoration: InputDecoration(
-                          hintText: '••••••••',
+                          hintText: "••••••••",
+                          prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                           ),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 32),
+
+                      // Botón de Acción
                       SizedBox(
                         width: double.infinity,
+                        height: 56,
                         child: ElevatedButton(
-                          onPressed: viewModel.isLoading ? null : () async {
-                            await viewModel.login(email: _emailController.text.trim(), password: _passwordController.text);
-                            if (mounted && viewModel.error == null) Navigator.pushReplacementNamed(context, '/home');
-                            else if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(viewModel.error!), backgroundColor: theme.colorScheme.error));
-                            }
-                          },
-                          child: viewModel.isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Iniciar Sesión'),
+                          onPressed: isLoading ? null : _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 0,
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                )
+                              : const Text(
+                                  "INICIAR SESIÓN",
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/register'),
-                  child: Text('¿No tienes cuenta? Regístrate', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 32),
+                const Text(
+                  "¿No tienes acceso?\nContacta al administrador de tu empresa.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white38, fontSize: 12, height: 1.5),
                 ),
               ],
             ),
@@ -151,11 +188,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLabel(String text, IconData icon) {
-    return Row(children: [
-      Icon(icon, size: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
-      const SizedBox(width: 8),
-      Text(text, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
-    ]);
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.cyan),
+      ),
+    );
   }
 }

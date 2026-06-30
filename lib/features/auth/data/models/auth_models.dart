@@ -1,51 +1,79 @@
-class EmpresaModel {
-  final int? id;
-  final String nombreEmpresa;
-  final String rfc;
-  final String correo;
-  final String? telefono;
+import 'dart:convert';
 
-  EmpresaModel({
-    this.id,
-    required this.nombreEmpresa,
-    required this.rfc,
-    required this.correo,
-    this.telefono,
-  });
+class LoginRequest {
+  final String numeroLicencia;
+  final String password;
 
-  factory EmpresaModel.fromJson(Map<String, dynamic> json) => EmpresaModel(
-        id: json['id'],
-        nombreEmpresa: json['nombre_empresa'] ?? '',
-        rfc: json['rfc'] ?? '',
-        correo: json['correo'] ?? '',
-        telefono: json['telefono'],
-      );
+  LoginRequest({required this.numeroLicencia, required this.password});
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'nombre_empresa': nombreEmpresa,
-        'rfc': rfc,
-        'correo': correo,
-        'telefono': telefono,
+        "numero_licencia": numeroLicencia,
+        "password": password,
       };
 }
 
-class AuthResponse {
+class LoginResponse {
   final String message;
   final String token;
-  final EmpresaModel empresa;
+  final bool requiereCambioPassword;
+  final int? idChofer;
 
-  AuthResponse({
+  LoginResponse({
     required this.message,
     required this.token,
-    required this.empresa,
+    required this.requiereCambioPassword,
+    this.idChofer,
   });
 
-  factory AuthResponse.fromJson(Map<String, dynamic> json) {
-    return AuthResponse(
-      message: json['message'] ?? '',
-      token: json['data']['token'] ?? '',
-      empresa: EmpresaModel.fromJson(json['data']['empresa']),
+  factory LoginResponse.fromJson(Map<String, dynamic> json) {
+    final String token = json["token"] ?? json["jwt"] ?? json["access_token"] ?? "";
+    
+    final dynamic rawId = json["chofer_id"] ??
+                         json["id_autor"] ?? 
+                         json["id_chofer"] ?? 
+                         json["id"] ?? 
+                         json["user_id"];
+                         
+    int? extractedId;
+    if (rawId is num) {
+      extractedId = rawId.toInt();
+    } else if (rawId is String) {
+      extractedId = int.tryParse(rawId);
+    }
+
+    // Fallback: Extraer del JWT si no vino en el JSON plano
+    if (extractedId == null && token.isNotEmpty) {
+      extractedId = _extractIdFromJwt(token);
+    }
+    
+    return LoginResponse(
+      message: json["message"] ?? "",
+      token: token,
+      requiereCambioPassword: json["requiere_cambio_password"] ?? false,
+      idChofer: extractedId,
     );
+  }
+
+  static int? _extractIdFromJwt(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      String payload = parts[1].replaceAll('-', '+').replaceAll('_', '/');
+      while (payload.length % 4 != 0) payload += '=';
+      final payloadJson = utf8.decode(base64Url.decode(payload));
+      final Map<String, dynamic> decoded = json.decode(payloadJson);
+      
+      // También buscamos chofer_id dentro del token
+      final id = decoded['chofer_id'] ?? 
+                 decoded['id_autor'] ?? 
+                 decoded['id_chofer'] ?? 
+                 decoded['id'] ?? 
+                 decoded['sub'];
+
+      if (id is num) return id.toInt();
+      return int.tryParse(id.toString());
+    } catch (_) {
+      return null;
+    }
   }
 }
