@@ -15,14 +15,17 @@ import 'features/auth/presentation/views/login_screen.dart';
 import 'features/auth/presentation/views/change_password_screen.dart';
 
 // Features
-import 'features/monitoring/data/repositories/mock_monitoring_repository.dart';
 import 'features/monitoring/presentation/view_models/monitoring_view_model.dart';
-import 'features/monitoring/presentation/views/monitoring_screen.dart';
+import 'features/monitoring/data/repositories/mock_monitoring_repository.dart';
+import 'features/monitoring/presentation/views/fatigue_detection_screen.dart'; // Importada
 import 'features/history/data/repositories/mock_history_repository.dart';
 import 'features/history/presentation/view_models/history_view_models.dart';
 import 'features/history/presentation/views/history_screen.dart';
 import 'features/community/presentation/view_models/feedback_provider.dart';
 import 'features/community/presentation/views/community_feed_screen.dart';
+import 'features/community/presentation/views/community_screen.dart';
+import 'features/community/data/repositories/mock_community_repository.dart';
+import 'features/community/presentation/view_models/community_view_model.dart';
 import 'features/profile/data/repositories/mock_profile_repository.dart';
 import 'features/profile/domain/use_cases/get_profile_use_case.dart';
 import 'features/profile/domain/use_cases/update_preferences_use_case.dart';
@@ -40,17 +43,18 @@ void main() async {
   final monitoringRepository = MockMonitoringRepository();
   final historyRepository = MockHistoryRepository();
   final profileRepository = MockProfileRepository();
+  final communityRepository = MockCommunityRepository();
 
   runApp(
     DevicePreview(
-      // Se activa automáticamente en modo debug y se apaga en release
-      enabled: !kReleaseMode, 
+      enabled: kIsWeb && !kReleaseMode, 
       builder: (context) => MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => LoginViewModel(loginUseCase: LoginUseCase(authRepository))),
           ChangeNotifierProvider(create: (_) => MonitoringViewModel(repository: monitoringRepository)),
           ChangeNotifierProvider(create: (_) => HistoryViewModel(repository: historyRepository)),
           ChangeNotifierProvider(create: (_) => FeedbackProvider()),
+          ChangeNotifierProvider(create: (_) => CommunityViewModel(repository: communityRepository)),
           ChangeNotifierProvider(create: (_) => ProfileViewModel(
             getProfileUseCase: GetProfileUseCase(profileRepository),
             updatePreferencesUseCase: UpdatePreferencesUseCase(profileRepository),
@@ -68,10 +72,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NeuroDrive Chofer',
-      useInheritedMediaQuery: true, // Necesario para DevicePreview
-      locale: DevicePreview.locale(context), // Necesario para DevicePreview
-      builder: DevicePreview.appBuilder, // Necesario para DevicePreview
+      title: 'NeuroDrive',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -101,31 +102,22 @@ class _MainContainerState extends State<MainContainer> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final List<Widget> screens = [
-      MonitoringScreen(viewModel: context.read<MonitoringViewModel>()),
+      const FatigueDetectionScreen(), // ACTIVADA: Cámara en tiempo real
       HistoryScreen(viewModel: context.read<HistoryViewModel>()),
       const CommunityFeedScreen(),
       const Center(child: Text('Alertas de Ruta')),
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('NeuroDrive'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () => Navigator.pushNamed(context, '/profile'),
-          ),
-        ],
-      ),
       body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         selectedItemColor: theme.colorScheme.primary,
-        unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.5),
+        unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.5),
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), label: 'Monitor'),
+          BottomNavigationBarItem(icon: Icon(Icons.remove_red_eye_outlined), label: 'Monitor'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historial'),
           BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Comunidad'),
           BottomNavigationBarItem(icon: Icon(Icons.warning_amber_rounded), label: 'Alertas'),

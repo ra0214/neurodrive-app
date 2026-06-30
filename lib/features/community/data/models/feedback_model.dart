@@ -1,5 +1,6 @@
 class FeedbackModel {
-  final int? id;
+  final int id;
+  final int idAutor;
   final String nombreRuta;
   final int nivelPeligro;
   final String comentario;
@@ -7,7 +8,8 @@ class FeedbackModel {
   final DateTime fecha;
 
   FeedbackModel({
-    this.id,
+    required this.id,
+    required this.idAutor,
     required this.nombreRuta,
     required this.nivelPeligro,
     required this.comentario,
@@ -17,13 +19,16 @@ class FeedbackModel {
 
   factory FeedbackModel.fromJson(Map<String, dynamic> json) {
     return FeedbackModel(
-      id: json['id'],
+      id: json['id'] ?? 0,
+      idAutor: json['id_autor'] ?? 0,
       nombreRuta: json['nombre_ruta'] ?? '',
       nivelPeligro: json['nivel_peligro'] ?? 1,
       comentario: json['comentario'] ?? '',
-      autor: json['autor'] ?? 'Compañero Chofer',
+      // Fallback amigable para el autor
+      autor: json['autor_nombre'] ?? 'Chofer #${json['id_autor']}', 
+      // PARSEO DE FECHA ISO 8601 A HORA LOCAL
       fecha: json['fecha'] != null 
-          ? DateTime.parse(json['fecha']) 
+          ? DateTime.parse(json['fecha']).toLocal() 
           : DateTime.now(),
     );
   }
@@ -31,7 +36,6 @@ class FeedbackModel {
 
 class FeedbackResponse {
   final List<FeedbackModel> feedbacks;
-
   FeedbackResponse({required this.feedbacks});
 
   factory FeedbackResponse.fromJson(dynamic json) {
@@ -62,11 +66,10 @@ class FeedbackRequest {
     required this.comentario,
   });
 
-  // Volvemos a incluir id_autor ya que la API de producción lo requiere obligatoriamente.
   Map<String, dynamic> toJson() => {
-        "id_autor": idAutor,
-        "nombre_ruta": nombreRuta,
-        "nivel_peligro": nivelPeligro,
-        "comentario": comentario,
-      };
+    "id_autor": idAutor,
+    "nombre_ruta": nombreRuta,
+    "nivel_peligro": nivelPeligro,
+    "comentario": comentario,
+  };
 }
