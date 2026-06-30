@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/2137299182/android.flutter_secure_storage.iml" filepath="$PROJECT_DIR$/.idea/modules/2137299182/android.flutter_secure_storage.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/2137299182/android.flutter_secure_storage.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/2137299182/android.flutter_secure_storage.unitTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-671181838/android.safe_device.iml" filepath="$PROJECT_DIR$/.idea/modules/-671181838/android.safe_device.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-671181838/android.safe_device.main.iml" filepath="$PROJECT_DIR$/.idea/modules/-671181838/android.safe_device.main.iml" />

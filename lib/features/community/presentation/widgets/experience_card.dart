@@ -20,13 +20,13 @@ class ExperienceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: experience.isCritical 
-            ? theme.colorScheme.error.withOpacity(0.8) 
-            : theme.colorScheme.onSurface.withOpacity(0.1),
+            ? theme.colorScheme.error.withValues(alpha: 0.8) 
+            : theme.colorScheme.onSurface.withValues(alpha: 0.1),
           width: experience.isCritical ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 15,
             offset: const Offset(0, 6),
           )
@@ -40,11 +40,11 @@ class ExperienceCard extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: cyanColor.withOpacity(0.5), width: 2),
+                  border: Border.all(color: cyanColor.withValues(alpha: 0.5), width: 2),
                 ),
                 child: CircleAvatar(
                   radius: 24,
-                  backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                  backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
                   child: Icon(Icons.person, color: theme.colorScheme.primary),
                 ),
               ),
@@ -66,7 +66,7 @@ class ExperienceCard extends StatelessWidget {
                         margin: const EdgeInsets.only(top: 4),
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: cyanColor.withOpacity(0.1),
+                          color: cyanColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -79,7 +79,7 @@ class ExperienceCard extends StatelessWidget {
                               style: TextStyle(
                                 color: cyanColor, 
                                 fontSize: 9, 
-                                fontWeight: FontWeight.black,
+                                fontWeight: FontWeight.w900,
                                 letterSpacing: 1.0,
                               ),
                             ),
@@ -92,7 +92,7 @@ class ExperienceCard extends StatelessWidget {
               Text(
                 experience.timeAgo,
                 style: TextStyle(
-                  color: theme.colorScheme.onSurface.withOpacity(0.4), 
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4), 
                   fontSize: 12,
                 ),
               ),
@@ -103,9 +103,9 @@ class ExperienceCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: theme.colorScheme.error.withOpacity(0.1),
+                color: theme.colorScheme.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: theme.colorScheme.error.withOpacity(0.3)),
+                border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +142,7 @@ class ExperienceCard extends StatelessWidget {
             Text(
               experience.content,
               style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.9),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
                 fontSize: 16,
                 height: 1.6,
               ),
@@ -173,7 +173,7 @@ class ExperienceCard extends StatelessWidget {
   }
 
   Widget _buildAction(ThemeData theme, IconData icon, String count, Color cyan, {bool isLiked = false}) {
-    final color = isLiked ? cyan : theme.colorScheme.onSurface.withOpacity(0.5);
+    final color = isLiked ? cyan : theme.colorScheme.onSurface.withValues(alpha: 0.5);
     return Row(
       children: [
         Icon(icon, size: 20, color: color),
