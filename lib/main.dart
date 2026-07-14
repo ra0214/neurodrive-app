@@ -23,6 +23,11 @@ import 'features/community/data/repositories/mock_community_repository.dart';
 import 'features/community/presentation/view_models/community_view_model.dart';
 import 'features/community/presentation/views/community_screen.dart';
 
+// Alerts Feature (Emergency)
+import 'features/alerts/data/repositories/mock_alert_repository.dart';
+import 'features/alerts/presentation/view_models/alert_view_model.dart';
+import 'features/alerts/presentation/views/alert_screen.dart';
+
 // Profile Feature (Adriana)
 import 'features/profile/data/repositories/mock_profile_repository.dart';
 import 'features/profile/domain/use_cases/get_profile_use_case.dart';
@@ -37,6 +42,7 @@ void main() {
   final historyRepository = MockHistoryRepository();
   final communityRepository = MockCommunityRepository();
   final profileRepository = MockProfileRepository();
+  final alertRepository = MockAlertRepository();
 
   runApp(
     DevicePreview(
@@ -50,6 +56,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => MonitoringViewModel(repository: monitoringRepository)),
           ChangeNotifierProvider(create: (_) => HistoryViewModel(repository: historyRepository)),
           ChangeNotifierProvider(create: (_) => CommunityViewModel(repository: communityRepository)),
+          ChangeNotifierProvider(create: (_) => AlertViewModel(repository: alertRepository)),
           // Profile
           ChangeNotifierProvider(create: (_) => ProfileViewModel(
             getProfileUseCase: GetProfileUseCase(profileRepository),
@@ -103,7 +110,7 @@ class _MainContainerState extends State<MainContainer> {
       MonitoringScreen(viewModel: context.read<MonitoringViewModel>()),
       HistoryScreen(viewModel: context.read<HistoryViewModel>()),
       CommunityScreen(viewModel: context.read<CommunityViewModel>()),
-      const Center(child: Text('Alertas')),
+      const AlertScreen(),
     ];
 
     return Scaffold(
