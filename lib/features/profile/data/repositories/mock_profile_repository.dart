@@ -4,33 +4,22 @@ import '../../domain/repositories/profile_repository.dart';
 class MockProfileRepository implements ProfileRepository {
   @override
   Future<UserProfile> getUserProfile() async {
-    // Simulating network delay
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(seconds: 1));
     return UserProfile(
-      name: 'Alejandro Vance',
-      id: 'ID: ND-8842-TX',
-      imageUrl: 'https://i.pravatar.cc/150?u=alejandro', // Placeholder image
-      connectedDevice: DeviceInfo(
-        name: 'NeuroBand Gen-3',
-        status: 'Conectado',
-        batteryLevel: 88,
-      ),
-      emergencyContact: EmergencyContact(
-        name: 'Elena Vance',
-        relationship: 'Esposa',
-        phoneNumber: '+34 612 345 678',
-      ),
-      preferences: NotificationPreferences(
-        hapticFeedback: true,
-        audioAlerts: true,
-        autoNightMode: false,
-      ),
+      id: 'ND-8842-TX',
+      idEmpresa: 'EMP-2024-001',
+      nombre: 'Alejandro',
+      apellidos: 'Vance',
+      numeroLicencia: 'LIC-773322-MEX',
+      telefono: '+52 55 1234 5678',
+      status: 'activo',
+      imageUrl: 'https://i.pravatar.cc/150?u=alejandro',
+      preferences: NotificationPreferences(),
     );
   }
 
   @override
   Future<void> updatePreferences(NotificationPreferences preferences) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    // In a real app, this would persist the data
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 }

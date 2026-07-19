@@ -9,6 +9,8 @@ class ProfileViewModel extends ChangeNotifier {
 
   UserProfile? _userProfile;
   bool _isLoading = false;
+  String? _errorMessage;
+  bool _unauthorized = false;
 
   ProfileViewModel({
     required this.getProfileUseCase,
@@ -17,57 +19,44 @@ class ProfileViewModel extends ChangeNotifier {
 
   UserProfile? get userProfile => _userProfile;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  bool get unauthorized => _unauthorized;
 
   Future<void> loadProfile() async {
     _isLoading = true;
+    _errorMessage = null;
+    _unauthorized = false;
     notifyListeners();
 
     try {
       _userProfile = await getProfileUseCase();
     } catch (e) {
-      debugPrint('Error loading profile: $e');
+      _errorMessage = e.toString();
+      if (e.toString().contains('Unauthorized')) {
+        _unauthorized = true;
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  void toggleHapticFeedback(bool value) {
-    if (_userProfile == null) return;
-    final updatedPreferences = _userProfile!.preferences.copyWith(hapticFeedback: value);
-    _updatePreferences(updatedPreferences);
-  }
-
-  void toggleAudioAlerts(bool value) {
-    if (_userProfile == null) return;
-    final updatedPreferences = _userProfile!.preferences.copyWith(audioAlerts: value);
-    _updatePreferences(updatedPreferences);
-  }
-
-  void toggleAutoNightMode(bool value) {
-    if (_userProfile == null) return;
-    final updatedPreferences = _userProfile!.preferences.copyWith(autoNightMode: value);
-    _updatePreferences(updatedPreferences);
-  }
-
-  Future<void> _updatePreferences(NotificationPreferences preferences) async {
-    if (_userProfile == null) return;
-    
-    _userProfile = UserProfile(
-      name: _userProfile!.name,
-      id: _userProfile!.id,
-      imageUrl: _userProfile!.imageUrl,
-      connectedDevice: _userProfile!.connectedDevice,
-      emergencyContact: _userProfile!.emergencyContact,
-      preferences: preferences,
-    );
+  void clearError() {
+    _errorMessage = null;
     notifyListeners();
+  }
 
+  // Se puede implementar la lógica de actualización de preferencias aquí si es necesario
+  Future<void> updatePreferences(NotificationPreferences prefs) async {
     try {
-      await updatePreferencesUseCase(preferences);
+      await updatePreferencesUseCase(prefs);
+      if (_userProfile != null) {
+        // En un caso real, aquí actualizaríamos el estado local
+        loadProfile(); 
+      }
     } catch (e) {
-      debugPrint('Error updating preferences: $e');
-      // Optionally handle rollback if update fails
+      _errorMessage = e.toString();
+      notifyListeners();
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../view_models/profile_view_model.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -18,10 +19,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  void _handleError(ProfileViewModel vm) {
+    if (vm.unauthorized) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sesión expirada. Por favor, inicia sesión de nuevo.')),
+        );
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      });
+    } else if (vm.errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${vm.errorMessage}')),
+        );
+        vm.clearError();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<ProfileViewModel>();
-    final colorScheme = Theme.of(context).colorScheme;
+
+    // Trigger error handling
+    if (vm.unauthorized || vm.errorMessage != null) {
+      _handleError(vm);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -29,16 +52,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          'NeuroDrive',
-          style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
+        title: const Text(
+          'Perfil del Conductor',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Builder(
         builder: (context) {
@@ -48,7 +65,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           final user = vm.userProfile;
           if (user == null) {
-            return const Center(child: Text('No se pudo cargar el perfil'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('No se pudo cargar el perfil'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => vm.loadProfile(),
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
           }
 
           return SingleChildScrollView(
@@ -57,26 +86,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 const SizedBox(height: 20),
                 _buildProfileHeader(context, user),
+                const SizedBox(height: 12),
+                _buildStatusBadge(context, user.status),
                 const SizedBox(height: 32),
-                _buildSectionHeader(context, 'DISPOSITIVOS VINCULADOS', 'Gestionar'),
-                _buildDeviceCard(context, user.connectedDevice),
+                _buildDateWidget(context),
                 const SizedBox(height: 24),
-                _buildSectionHeader(context, 'CONTACTOS DE EMERGENCIA', '+ Añadir'),
-                _buildContactCard(context, user.emergencyContact),
-                const SizedBox(height: 24),
-                _buildSectionHeader(context, 'PREFERENCIAS DE ALERTA', null),
-                _buildPreferencesCard(context, vm),
+                _buildInfoSection(context, user),
                 const SizedBox(height: 32),
                 _buildLogoutButton(context),
-                const SizedBox(height: 24),
-                Text(
-                  'NEURODRIVE CORE V2.4.0-STABLE',
-                  style: TextStyle(
-                    color: colorScheme.onSurface.withValues(alpha: 0.24),
-                    fontSize: 10,
-                    letterSpacing: 1.2,
-                  ),
-                ),
                 const SizedBox(height: 40),
               ],
             ),
@@ -90,194 +107,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Stack(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: colorScheme.primary.withValues(alpha: 0.5), width: 2),
-              ),
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: NetworkImage(user.imageUrl),
-              ),
-            ),
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.edit, size: 16, color: colorScheme.onPrimary),
-              ),
-            ),
-          ],
+        CircleAvatar(
+          radius: 50,
+          backgroundColor: colorScheme.primaryContainer,
+          backgroundImage: user.imageUrl != null ? NetworkImage(user.imageUrl!) : null,
+          child: user.imageUrl == null
+              ? Icon(Icons.person, size: 50, color: colorScheme.onPrimaryContainer)
+              : null,
         ),
         const SizedBox(height: 16),
         Text(
-          user.name,
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
-        ),
-        Text(
-          user.id,
-          style: TextStyle(fontSize: 12, color: colorScheme.primary, letterSpacing: 1.5),
+          user.fullName,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
         ),
       ],
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, String? actionText) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+  Widget _buildStatusBadge(BuildContext context, String status) {
+    final bool isActive = status.toLowerCase() == 'activo';
+    final Color color = isActive ? Colors.green : Colors.red;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
           Text(
-            title,
-            style: TextStyle(
-              color: colorScheme.onSurface.withValues(alpha: 0.38),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 1.1,
-            ),
+            status.toUpperCase(),
+            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
           ),
-          if (actionText != null)
-            Text(
-              actionText,
-              style: TextStyle(color: colorScheme.primary, fontSize: 12, fontWeight: FontWeight.w500),
-            ),
         ],
       ),
     );
   }
 
-  Widget _buildDeviceCard(BuildContext context, device) {
+  Widget _buildDateWidget(BuildContext context) {
+    final String formattedDate = DateFormat('EEEE, d MMMM yyyy', 'es_ES').format(DateTime.now());
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today_outlined, size: 20),
+          const SizedBox(width: 12),
+          Text(
+            'Fecha actual: $formattedDate',
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoSection(BuildContext context, user) {
+    return Column(
+      children: [
+        _buildInfoCard(context, 'ID de Operador', user.id, Icons.badge_outlined),
+        const SizedBox(height: 12),
+        _buildInfoCard(context, 'ID de Empresa', user.idEmpresa, Icons.business_outlined),
+        const SizedBox(height: 12),
+        _buildInfoCard(context, 'Número de Licencia', user.numeroLicencia, Icons.assignment_ind_outlined),
+        const SizedBox(height: 12),
+        _buildInfoCard(context, 'Teléfono', user.telefono, Icons.phone_outlined),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(BuildContext context, String label, String value, IconData icon) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.auto_awesome, color: colorScheme.primary),
-          ),
+          Icon(icon, color: colorScheme.primary),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(device.name, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
                 Text(
-                  'Estado: ${device.status} • Batería ${device.batteryLevel}%',
+                  label,
                   style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ],
             ),
           ),
-          const CircleAvatar(radius: 4, backgroundColor: Colors.green),
         ],
       ),
-    );
-  }
-
-  Widget _buildContactCard(BuildContext context, contact) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.onSurface.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.person_outline, color: colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(contact.name, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
-                Text(
-                  '${contact.relationship} • ${contact.phoneNumber}',
-                  style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.phone_outlined, color: colorScheme.onSurfaceVariant, size: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreferencesCard(BuildContext context, ProfileViewModel vm) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final prefs = vm.userProfile!.preferences;
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          _buildSwitchTile(
-            context,
-            'Vibración Háptica',
-            'Alertas físicas en la muñeca',
-            prefs.hapticFeedback,
-            vm.toggleHapticFeedback,
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          _buildSwitchTile(
-            context,
-            'Alertas de Audio',
-            'Notificaciones sonoras en cabina',
-            prefs.audioAlerts,
-            vm.toggleAudioAlerts,
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          _buildSwitchTile(
-            context,
-            'Modo Nocturno Automático',
-            'Ajuste de brillo por sensores',
-            prefs.autoNightMode,
-            vm.toggleAutoNightMode,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSwitchTile(BuildContext context, String title, String subtitle, bool value, Function(bool) onChanged) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return SwitchListTile(
-      value: value,
-      onChanged: onChanged,
-      title: Text(title, style: TextStyle(color: colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w500)),
-      subtitle: Text(subtitle, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11)),
-      activeColor: colorScheme.primary,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
 
@@ -285,16 +227,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () {},
-        icon: const Icon(Icons.logout, size: 18),
+      child: OutlinedButton.icon(
+        onPressed: () => Navigator.of(context).pushReplacementNamed('/login'),
+        icon: const Icon(Icons.logout),
         label: const Text('Cerrar Sesión'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.errorContainer,
-          foregroundColor: colorScheme.onErrorContainer,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colorScheme.error,
+          side: BorderSide(color: colorScheme.error),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 0,
         ),
       ),
     );

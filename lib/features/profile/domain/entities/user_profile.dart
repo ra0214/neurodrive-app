@@ -1,43 +1,27 @@
 class UserProfile {
-  final String name;
   final String id;
-  final String imageUrl;
-  final DeviceInfo connectedDevice;
-  final EmergencyContact emergencyContact;
+  final String idEmpresa;
+  final String nombre;
+  final String apellidos;
+  final String numeroLicencia;
+  final String telefono;
+  final String status; // "activo", "inactivo", "suspendido"
+  final String? imageUrl;
   final NotificationPreferences preferences;
 
   UserProfile({
-    required this.name,
     required this.id,
-    required this.imageUrl,
-    required this.connectedDevice,
-    required this.emergencyContact,
+    required this.idEmpresa,
+    required this.nombre,
+    required this.apellidos,
+    required this.numeroLicencia,
+    required this.telefono,
+    required this.status,
+    this.imageUrl,
     required this.preferences,
   });
-}
 
-class DeviceInfo {
-  final String name;
-  final String status;
-  final int batteryLevel;
-
-  DeviceInfo({
-    required this.name,
-    required this.status,
-    required this.batteryLevel,
-  });
-}
-
-class EmergencyContact {
-  final String name;
-  final String relationship;
-  final String phoneNumber;
-
-  EmergencyContact({
-    required this.name,
-    required this.relationship,
-    required this.phoneNumber,
-  });
+  String get fullName => '$nombre $apellidos';
 }
 
 class NotificationPreferences {
@@ -46,20 +30,8 @@ class NotificationPreferences {
   final bool autoNightMode;
 
   NotificationPreferences({
-    required this.hapticFeedback,
-    required this.audioAlerts,
-    required this.autoNightMode,
+    this.hapticFeedback = true,
+    this.audioAlerts = true,
+    this.autoNightMode = false,
   });
-
-  NotificationPreferences copyWith({
-    bool? hapticFeedback,
-    bool? audioAlerts,
-    bool? autoNightMode,
-  }) {
-    return NotificationPreferences(
-      hapticFeedback: hapticFeedback ?? this.hapticFeedback,
-      audioAlerts: audioAlerts ?? this.audioAlerts,
-      autoNightMode: autoNightMode ?? this.autoNightMode,
-    );
-  }
 }
