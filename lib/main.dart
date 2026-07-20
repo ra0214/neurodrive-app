@@ -35,6 +35,10 @@ import 'features/profile/domain/use_cases/update_preferences_use_case.dart';
 import 'features/profile/presentation/view_models/profile_view_model.dart';
 import 'features/profile/presentation/views/profile_screen.dart';
 
+// Assistant Feature (IA)
+import 'features/assistant/presentation/view_models/assistant_view_model.dart';
+import 'features/assistant/presentation/views/assistant_chat_view.dart';
+
 void main() {
   // Repositories
   final authRepository = MockAuthRepository();
@@ -62,6 +66,7 @@ void main() {
             getProfileUseCase: GetProfileUseCase(profileRepository),
             updatePreferencesUseCase: UpdatePreferencesUseCase(profileRepository),
           )),
+          ChangeNotifierProvider(create: (_) => AssistantViewModel()),
         ],
         child: const MyApp(),
       ),
@@ -127,6 +132,19 @@ class _MainContainerState extends State<MainContainer> {
         ],
       ),
       body: IndexedStack(index: _currentIndex, children: screens),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => const AssistantChatView(),
+          );
+        },
+        backgroundColor: const Color(0xFF00E5FF), // Cyan vibrante de NeuroDrive
+        elevation: 4,
+        child: const Icon(Icons.auto_awesome, color: Colors.black, size: 28),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         selectedItemColor: theme.colorScheme.primary,
