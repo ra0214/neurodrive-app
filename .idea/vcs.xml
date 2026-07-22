@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$USER_HOME$/Downloads/flutter_windows_3.41.9-stable/flutter" vcs="Git" />
   </component>
 </project>
