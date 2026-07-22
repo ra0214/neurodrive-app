@@ -16,6 +16,7 @@ import 'features/ai_assistant/presentation/views/ai_chat_screen.dart';
 import 'features/monitoring/presentation/views/fatigue_detection_screen.dart';
 import 'features/history/presentation/views/history_screen.dart';
 import 'features/community/presentation/views/community_feed_screen.dart';
+import 'features/alerts/presentation/views/alert_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,7 +83,7 @@ class _MainContainerState extends ConsumerState<MainContainer> {
       const FatigueDetectionScreen(),
       const HistoryScreen(),
       const CommunityFeedScreen(),
-      const Center(child: Text('Alertas de Ruta')),
+      const AlertScreen(),
     ];
 
     return Scaffold(
