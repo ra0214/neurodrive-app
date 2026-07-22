@@ -7,45 +7,118 @@ class FeedbackCard extends StatelessWidget {
 
   const FeedbackCard({super.key, required this.feedback});
 
+  /// Helper: Formatea la fecha al estilo social solicitado
+  String _getFormattedDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateToCheck = DateTime(date.year, date.month, date.day);
+
+    final timeFormat = DateFormat('hh:mm a'); // Ejemplo: 03:30 PM
+
+    if (dateToCheck == today) {
+      return 'Hoy a las ${timeFormat.format(date)}';
+    } else if (dateToCheck == yesterday) {
+      return 'Ayer a las ${timeFormat.format(date)}';
+    } else {
+      // Formato: 29 de Jun, 2026
+      final months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      return '${date.day} de ${months[date.month - 1]}, ${date.year}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: const Color(0xFF1D1E33),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF101B33) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.15),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          )
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    feedback.nombreRuta,
-                    style: const TextStyle(color: Colors.cyan, fontWeight: FontWeight.bold, fontSize: 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        feedback.nombreRuta,
+                        style: const TextStyle(
+                          fontSize: 19, 
+                          fontWeight: FontWeight.w900, 
+                          color: Color(0xFF00F1FE), // Cyan distintivo
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      // TEXTO DE LA FECHA (GRIS Y PEQUEÑO)
+                      Text(
+                        _getFormattedDate(feedback.fecha),
+                        style: const TextStyle(
+                          color: Colors.grey, 
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 _buildDangerIndicator(feedback.nivelPeligro),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
             Text(
               feedback.comentario,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.9), 
+                fontSize: 15,
+                height: 1.5,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            const Divider(color: Colors.white10, height: 24),
+            const SizedBox(height: 16),
+            Divider(height: 1, color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+            const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Chofer ID: ${feedback.idAutor}",
-                  style: const TextStyle(color: Colors.white38, fontSize: 12),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.person_outline, size: 14, color: theme.colorScheme.primary),
                 ),
+                const SizedBox(width: 10),
                 Text(
-                  DateFormat('dd/MM/yyyy HH:mm').format(feedback.fecha),
-                  style: const TextStyle(color: Colors.white38, fontSize: 12),
+                  feedback.autor,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6), 
+                    fontSize: 12, 
+                    fontWeight: FontWeight.w600,
+                    fontStyle: FontStyle.italic
+                  ),
                 ),
               ],
             ),
@@ -59,9 +132,9 @@ class FeedbackCard extends StatelessWidget {
     return Row(
       children: List.generate(5, (index) {
         return Icon(
-          index < level ? Icons.warning_rounded : Icons.warning_amber_rounded,
-          color: index < level ? Colors.redAccent : Colors.white10,
-          size: 18,
+          Icons.local_fire_department_rounded,
+          color: index < level ? Colors.orangeAccent : Colors.grey.withValues(alpha: 0.2),
+          size: 20,
         );
       }),
     );

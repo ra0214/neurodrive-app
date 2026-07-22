@@ -4,7 +4,6 @@ import '../../domain/repositories/monitoring_repository.dart';
 class MockMonitoringRepository implements MonitoringRepository {
   @override
   Future<MonitoringStatus> getMonitoringStatus() async {
-    // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
     return MonitoringStatus(
       attentionLevel: 85,

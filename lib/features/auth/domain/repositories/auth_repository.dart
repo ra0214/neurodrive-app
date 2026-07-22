@@ -1,11 +1,13 @@
+import '../../data/models/auth_models.dart';
+
 abstract class AuthRepository {
-  Future<void> register({
-    required String fullName,
-    required String email,
+  Future<LoginResponse> login({
+    required String numeroLicencia,
     required String password,
   });
 
-  Future<void> login({
+  Future<void> register({
+    required String fullName,
     required String email,
     required String password,
   });

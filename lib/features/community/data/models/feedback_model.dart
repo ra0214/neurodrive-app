@@ -4,6 +4,7 @@ class FeedbackModel {
   final String nombreRuta;
   final int nivelPeligro;
   final String comentario;
+  final String autor;
   final DateTime fecha;
 
   FeedbackModel({
@@ -12,6 +13,7 @@ class FeedbackModel {
     required this.nombreRuta,
     required this.nivelPeligro,
     required this.comentario,
+    required this.autor,
     required this.fecha,
   });
 
@@ -22,24 +24,32 @@ class FeedbackModel {
       nombreRuta: json['nombre_ruta'] ?? '',
       nivelPeligro: json['nivel_peligro'] ?? 1,
       comentario: json['comentario'] ?? '',
-      fecha: DateTime.parse(json['fecha'] ?? DateTime.now().toIso8601String()),
+      // Fallback amigable para el autor
+      autor: json['autor_nombre'] ?? 'Chofer #${json['id_autor']}', 
+      // PARSEO DE FECHA ISO 8601 A HORA LOCAL
+      fecha: json['fecha'] != null 
+          ? DateTime.parse(json['fecha']).toLocal() 
+          : DateTime.now(),
     );
   }
 }
 
 class FeedbackResponse {
   final List<FeedbackModel> feedbacks;
-  final int total;
+  FeedbackResponse({required this.feedbacks});
 
-  FeedbackResponse({required this.feedbacks, required this.total});
-
-  factory FeedbackResponse.fromJson(Map<String, dynamic> json) {
-    return FeedbackResponse(
-      feedbacks: (json['feedback'] as List)
-          .map((i) => FeedbackModel.fromJson(i))
-          .toList(),
-      total: json['total'] ?? 0,
-    );
+  factory FeedbackResponse.fromJson(dynamic json) {
+    if (json is List) {
+      return FeedbackResponse(
+        feedbacks: json.map((i) => FeedbackModel.fromJson(i as Map<String, dynamic>)).toList(),
+      );
+    } else if (json is Map<String, dynamic> && json.containsKey('feedback')) {
+      final list = json['feedback'] as List?;
+      return FeedbackResponse(
+        feedbacks: list?.map((i) => FeedbackModel.fromJson(i as Map<String, dynamic>)).toList() ?? [],
+      );
+    }
+    return FeedbackResponse(feedbacks: []);
   }
 }
 
@@ -57,9 +67,9 @@ class FeedbackRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        "id_autor": idAutor,
-        "nombre_ruta": nombreRuta,
-        "nivel_peligro": nivelPeligro,
-        "comentario": comentario,
-      };
+    "id_autor": idAutor,
+    "nombre_ruta": nombreRuta,
+    "nivel_peligro": nivelPeligro,
+    "comentario": comentario,
+  };
 }

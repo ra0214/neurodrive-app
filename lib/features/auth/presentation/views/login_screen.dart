@@ -1,220 +1,185 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../view_models/login_view_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/global_providers.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _licenciaController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _licenciaController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
+  Future<void> _handleLogin() async {
+    if (_licenciaController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor, ingresa tu licencia y PIN")),
+      );
+      return;
+    }
+
+    final viewModel = ref.read(loginViewModelProvider);
+    final response = await viewModel.login(
+      numeroLicencia: _licenciaController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (response != null) {
+      if (response.requiereCambioPassword) {
+        Navigator.pushReplacementNamed(context, '/change-password');
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } else if (viewModel.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(viewModel.error!),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<LoginViewModel>();
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isLoading = ref.watch(loginViewModelProvider).isLoading;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark 
-              ? [const Color(0xFF0D1B2A), theme.colorScheme.background]
-              : [theme.colorScheme.primary.withOpacity(0.1), theme.colorScheme.background],
-          ),
-        ),
-        child: SafeArea(
+      backgroundColor: theme.colorScheme.background,
+      body: SafeArea(
+        child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 60),
-                // Logo Icon
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
-                  ),
-                  child: Icon(Icons.sensors, color: theme.colorScheme.primary, size: 32),
-                ),
+                // Identidad Visual
+                Icon(Icons.directions_car_filled_rounded, size: 80, color: theme.colorScheme.primary),
                 const SizedBox(height: 16),
                 Text(
-                  'NeuroDrive',
-                  style: TextStyle(
-                    fontSize: 32,
+                  "NeuroDrive",
+                  style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary,
-                    letterSpacing: 1.2,
                   ),
                 ),
-                Text(
-                  'THE SILENT GUARDIAN',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: theme.colorScheme.primary.withOpacity(0.7),
-                    letterSpacing: 3.0,
-                  ),
+                const Text(
+                  "PORTAL EXCLUSIVO PARA CHOFERES",
+                  style: TextStyle(fontSize: 10, letterSpacing: 2, color: Colors.white54),
                 ),
-                const SizedBox(height: 60),
-                // Login Card
+                const SizedBox(height: 48),
+
+                // Card de Login
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
-                    boxShadow: isDark ? [] : [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      )
-                    ],
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: Colors.white10),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Bienvenido',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
-                        ),
+                      const Text(
+                        "Bienvenido de nuevo",
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Ingresa tus credenciales para continuar con el monitoreo.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
-                        ),
+                      const Text(
+                        "Usa tus credenciales asignadas por la empresa.",
+                        style: TextStyle(color: Colors.white60, fontSize: 13),
                       ),
                       const SizedBox(height: 32),
-                      
-                      _buildTextFieldLabel(context, 'CORREO ELECTRÓNICO'),
-                      const SizedBox(height: 8),
+
+                      // Campo Licencia
+                      _buildLabel("NÚMERO DE LICENCIA"),
                       TextField(
-                        controller: _emailController,
-                        style: TextStyle(color: theme.colorScheme.onSurface),
-                        decoration: const InputDecoration(
-                          hintText: 'usuario@neurodrive.ai',
-                          prefixIcon: Icon(Icons.email_outlined, size: 18),
+                        controller: _licenciaController,
+                        style: const TextStyle(fontSize: 16),
+                        decoration: InputDecoration(
+                          hintText: "Ej: ABC123456",
+                          prefixIcon: const Icon(Icons.badge_outlined),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildTextFieldLabel(context, 'CONTRASEÑA'),
-                          GestureDetector(
-                            onTap: () {},
-                            child: Text(
-                              'Olvidé mi contraseña',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
+
+                      // Campo PIN
+                      _buildLabel("PIN DE ACCESO"),
                       TextField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        style: const TextStyle(fontSize: 16),
                         decoration: InputDecoration(
-                          hintText: '••••••••',
-                          prefixIcon: const Icon(Icons.lock_outline, size: 18),
+                          hintText: "••••••••",
+                          prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                              size: 18,
-                            ),
+                            icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
                           ),
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
-                      ElevatedButton(
-                        onPressed: viewModel.isLoading
-                            ? null
-                            : () async {
-                                await viewModel.login(
-                                  email: _emailController.text,
-                                  password: _passwordController.text,
-                                );
-                                if (mounted) {
-                                  if (viewModel.error == null) {
-                                    Navigator.pushReplacementNamed(context, '/home');
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(viewModel.error!),
-                                        backgroundColor: Colors.redAccent,
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                        child: viewModel.isLoading
-                            ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
-                            : const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('Iniciar Sesión'),
-                                  SizedBox(width: 8),
-                                  Icon(Icons.login, size: 20),
-                                ],
-                              ),
+
+                      // Botón de Acción
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: isLoading ? null : _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 0,
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                )
+                              : const Text(
+                                  "INICIAR SESIÓN",
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '¿No tienes una cuenta? ',
-                      style: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.6)),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/register');
-                      },
-                      child: Text(
-                        'Registrarse',
-                        style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 32),
+                const Text(
+                  "¿No tienes acceso?\nContacta al administrador de tu empresa.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white38, fontSize: 12, height: 1.5),
                 ),
-                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -223,25 +188,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildTextFieldLabel(BuildContext context, String label) {
-    return Row(
-      children: [
-        Icon(
-          label.contains('CORREO') ? Icons.email_outlined : Icons.lock_outline,
-          size: 14,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-            letterSpacing: 1.1,
-          ),
-        ),
-      ],
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.cyan),
+      ),
     );
   }
 }

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../view_models/register_view_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/global_providers.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -25,7 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<RegisterViewModel>();
+    final viewModel = ref.watch(registerViewModelProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -168,7 +168,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Text(
                       '¿Ya tienes una cuenta? ',
-                      style: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.6)),
+                      style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
                     ),
                     TextButton(
                       onPressed: () {

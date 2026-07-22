@@ -1,16 +1,17 @@
 import '../repositories/auth_repository.dart';
+import '../../data/models/auth_models.dart';
 
 class LoginUseCase {
   final AuthRepository repository;
 
   LoginUseCase(this.repository);
 
-  Future<void> execute({
-    required String email,
+  Future<LoginResponse> execute({
+    required String numeroLicencia,
     required String password,
   }) {
     return repository.login(
-      email: email,
+      numeroLicencia: numeroLicencia,
       password: password,
     );
   }

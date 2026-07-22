@@ -1,74 +1,68 @@
 import 'package:flutter/material.dart';
-import '../view_models/history_view_models.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/global_providers.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/record_tile.dart';
 
-class HistoryScreen extends StatefulWidget {
-  final HistoryViewModel viewModel;
-
-  const HistoryScreen({super.key, required this.viewModel});
+class HistoryScreen extends ConsumerStatefulWidget {
+  const HistoryScreen({super.key});
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        widget.viewModel.loadHistoryData();
-      }
+      ref.read(historyViewModelProvider).loadHistoryData();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: widget.viewModel,
-      builder: (context, _) {
-        if (widget.viewModel.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final viewModel = ref.watch(historyViewModelProvider);
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (widget.viewModel.summary != null)
-                SummaryCard(summary: widget.viewModel.summary!),
-              const SizedBox(height: 24),
-              _buildFilters(),
-              const SizedBox(height: 24),
-              const Text(
-                'REGISTROS RECIENTES',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white54,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ...widget.viewModel.records.map((record) => RecordTile(record: record)),
-            ],
+    if (viewModel.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (viewModel.summary != null)
+            SummaryCard(summary: viewModel.summary!),
+          const SizedBox(height: 24),
+          _buildFilters(),
+          const SizedBox(height: 24),
+          const Text(
+            'REGISTROS RECIENTES',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white54,
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        );
-      },
+          const SizedBox(height: 16),
+          ...viewModel.records.map((record) => RecordTile(record: record)),
+        ],
+      ),
     );
   }
 
   Widget _buildFilters() {
-    return SingleChildScrollView(
+    return const SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
           _FilterChip(label: 'Todos los Viajes', isSelected: true),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           _FilterChip(label: 'Alto Riesgo'),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           _FilterChip(label: 'Rutas'),
         ],
       ),
@@ -79,7 +73,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool isSelected;
-  const _FilterChip({required this.label, this.isSelected = false});
+  const _FilterChip({super.key, required this.label, this.isSelected = false});
 
   @override
   Widget build(BuildContext context) {
