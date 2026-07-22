@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../view_models/login_view_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/global_providers.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _licenciaController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    final viewModel = context.read<LoginViewModel>();
+    final viewModel = ref.read(loginViewModelProvider);
     final response = await viewModel.login(
       numeroLicencia: _licenciaController.text.trim(),
       password: _passwordController.text,
@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isLoading = context.watch<LoginViewModel>().isLoading;
+    final isLoading = ref.watch(loginViewModelProvider).isLoading;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,

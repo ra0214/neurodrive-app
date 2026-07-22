@@ -5,4 +5,10 @@ abstract class AuthRepository {
     required String numeroLicencia,
     required String password,
   });
+
+  Future<void> register({
+    required String fullName,
+    required String email,
+    required String password,
+  });
 }

@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/global_providers.dart';
 import '../view_models/profile_view_model.dart';
+import 'package:intl/intl.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProfileViewModel>().loadProfile();
+      ref.read(profileViewModelProvider).loadProfile();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<ProfileViewModel>();
+    final vm = ref.watch(profileViewModelProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -33,12 +35,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'NeuroDrive',
           style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Builder(
         builder: (context) {
@@ -48,7 +44,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           final user = vm.userProfile;
           if (user == null) {
-            return const Center(child: Text('No se pudo cargar el perfil'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('No se pudo cargar el perfil'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref.read(profileViewModelProvider).loadProfile(),
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
           }
 
           return SingleChildScrollView(
@@ -57,9 +65,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 const SizedBox(height: 20),
                 _buildProfileHeader(context, user),
+                const SizedBox(height: 20),
+                _buildDateReminder(context),
                 const SizedBox(height: 32),
-                _buildSectionHeader(context, 'DISPOSITIVOS VINCULADOS', 'Gestionar'),
-                _buildDeviceCard(context, user.connectedDevice),
+                _buildSectionHeader(context, 'DATOS OPERATIVOS', null),
+                _buildDataCard(context, [
+                  {'label': 'ID OPERADOR', 'value': user.id.toString(), 'icon': Icons.badge_outlined},
+                  {'label': 'ID EMPRESA', 'value': user.idEmpresa.toString(), 'icon': Icons.business_outlined},
+                  {'label': 'NÚMERO DE LICENCIA', 'value': user.numeroLicencia, 'icon': Icons.assignment_ind_outlined},
+                  {'label': 'TELÉFONO', 'value': user.telefono, 'icon': Icons.phone_android_outlined},
+                ]),
                 const SizedBox(height: 24),
                 _buildSectionHeader(context, 'CONTACTOS DE EMERGENCIA', '+ Añadir'),
                 _buildContactCard(context, user.emergencyContact),
@@ -68,15 +83,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildPreferencesCard(context, vm),
                 const SizedBox(height: 32),
                 _buildLogoutButton(context),
-                const SizedBox(height: 24),
-                Text(
-                  'NEURODRIVE CORE V2.4.0-STABLE',
-                  style: TextStyle(
-                    color: colorScheme.onSurface.withValues(alpha: 0.24),
-                    fontSize: 10,
-                    letterSpacing: 1.2,
-                  ),
-                ),
                 const SizedBox(height: 40),
               ],
             ),
@@ -88,45 +94,109 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileHeader(BuildContext context, user) {
     final colorScheme = Theme.of(context).colorScheme;
+    final bool isActive = user.status.toLowerCase() == 'activo';
+
     return Column(
       children: [
-        Stack(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: colorScheme.primary.withValues(alpha: 0.5), width: 2),
-              ),
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: NetworkImage(user.imageUrl),
-              ),
-            ),
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.edit, size: 16, color: colorScheme.onPrimary),
-              ),
-            ),
-          ],
+        CircleAvatar(
+          radius: 50,
+          backgroundImage: NetworkImage(user.imageUrl),
         ),
         const SizedBox(height: 16),
         Text(
-          user.name,
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+          user.fullName,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        Text(
-          user.id,
-          style: TextStyle(fontSize: 12, color: colorScheme.primary, letterSpacing: 1.5),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: (isActive ? Colors.green : Colors.red).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: isActive ? Colors.green : Colors.red),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.green : Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                user.status.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: isActive ? Colors.green : Colors.red,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDateReminder(BuildContext context) {
+    final theme = Theme.of(context);
+    final String formattedDate = DateFormat('EEEE, d MMMM yyyy', 'es_ES').format(DateTime.now());
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.calendar_today, size: 16, color: theme.colorScheme.primary),
+          const SizedBox(width: 12),
+          Text(
+            formattedDate,
+            style: TextStyle(fontSize: 12, color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDataCard(BuildContext context, List<Map<String, dynamic>> items) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        children: items.map((item) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              children: [
+                Icon(item['icon'], size: 20, color: theme.colorScheme.onSurfaceVariant),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item['label'], style: TextStyle(fontSize: 10, color: theme.colorScheme.onSurfaceVariant)),
+                      Text(item['value'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -140,55 +210,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(
             title,
             style: TextStyle(
-              color: colorScheme.onSurface.withValues(alpha: 0.38),
+              color: colorScheme.onSurface.withValues(alpha: 0.4),
               fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.bold,
               letterSpacing: 1.1,
             ),
           ),
           if (actionText != null)
             Text(
               actionText,
-              style: TextStyle(color: colorScheme.primary, fontSize: 12, fontWeight: FontWeight.w500),
+              style: TextStyle(color: colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDeviceCard(BuildContext context, device) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.auto_awesome, color: colorScheme.primary),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(device.name, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
-                Text(
-                  'Estado: ${device.status} • Batería ${device.batteryLevel}%',
-                  style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const CircleAvatar(radius: 4, backgroundColor: Colors.green),
         ],
       ),
     );
@@ -201,23 +233,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.onSurface.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.person_outline, color: colorScheme.onSurfaceVariant),
-          ),
+          Icon(Icons.person_outline, color: colorScheme.onSurfaceVariant),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(contact.name, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
+                Text(contact.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                 Text(
                   '${contact.relationship} • ${contact.phoneNumber}',
                   style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
@@ -225,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-          Icon(Icons.phone_outlined, color: colorScheme.onSurfaceVariant, size: 20),
+          Icon(Icons.phone_outlined, color: colorScheme.primary, size: 20),
         ],
       ),
     );
@@ -238,63 +264,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         children: [
-          _buildSwitchTile(
-            context,
-            'Vibración Háptica',
-            'Alertas físicas en la muñeca',
-            prefs.hapticFeedback,
-            vm.toggleHapticFeedback,
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          _buildSwitchTile(
-            context,
-            'Alertas de Audio',
-            'Notificaciones sonoras en cabina',
-            prefs.audioAlerts,
-            vm.toggleAudioAlerts,
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          _buildSwitchTile(
-            context,
-            'Modo Nocturno Automático',
-            'Ajuste de brillo por sensores',
-            prefs.autoNightMode,
-            vm.toggleAutoNightMode,
-          ),
+          _buildSwitchTile(context, 'Vibración Háptica', prefs.hapticFeedback, vm.toggleHapticFeedback),
+          _buildSwitchTile(context, 'Alertas de Audio', prefs.audioAlerts, vm.toggleAudioAlerts),
+          _buildSwitchTile(context, 'Modo Nocturno', prefs.autoNightMode, vm.toggleAutoNightMode),
         ],
       ),
     );
   }
 
-  Widget _buildSwitchTile(BuildContext context, String title, String subtitle, bool value, Function(bool) onChanged) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildSwitchTile(BuildContext context, String title, bool value, Function(bool) onChanged) {
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      title: Text(title, style: TextStyle(color: colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w500)),
-      subtitle: Text(subtitle, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11)),
-      activeColor: colorScheme.primary,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      title: Text(title, style: const TextStyle(fontSize: 14)),
+      activeColor: Theme.of(context).colorScheme.primary,
     );
   }
 
   Widget _buildLogoutButton(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () {},
-        icon: const Icon(Icons.logout, size: 18),
-        label: const Text('Cerrar Sesión'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.errorContainer,
-          foregroundColor: colorScheme.onErrorContainer,
+      child: OutlinedButton.icon(
+        onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+        icon: const Icon(Icons.logout),
+        label: const Text('CERRAR SESIÓN'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.red,
+          side: const BorderSide(color: Colors.red),
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 0,
         ),
       ),
     );

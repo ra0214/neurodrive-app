@@ -11,14 +11,13 @@ class SecurityService {
     if (kIsWeb) return; 
     
     try {
-      // screen_protector es compatible con tu versión de Flutter
+      // Bloqueo activado para no permitir capturas de pantalla
       await ScreenProtector.preventScreenshotOn();
     } catch (e) {
       debugPrint('Error configurando protección de pantalla: $e');
     }
   }
 
-  /// Verifica si el dispositivo es seguro (Solo Móvil)
   static Future<String?> checkDeviceSecurity() async {
     if (kDebugMode || kIsWeb) return null;
 

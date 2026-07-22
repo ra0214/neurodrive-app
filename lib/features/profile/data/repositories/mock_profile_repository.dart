@@ -4,12 +4,17 @@ import '../../domain/repositories/profile_repository.dart';
 class MockProfileRepository implements ProfileRepository {
   @override
   Future<UserProfile> getUserProfile() async {
-    // Simulating network delay
+    // Simulando retraso de red
     await Future.delayed(const Duration(milliseconds: 500));
     return UserProfile(
-      name: 'Alejandro Vance',
-      id: 'ID: ND-8842-TX',
-      imageUrl: 'https://i.pravatar.cc/150?u=alejandro', // Placeholder image
+      id: 1,
+      idEmpresa: 101,
+      name: 'Alejandro',
+      apellidos: 'Vance',
+      numeroLicencia: 'ND-8842-TX',
+      telefono: '+34 612 345 678',
+      status: 'activo',
+      imageUrl: 'https://i.pravatar.cc/150?u=alejandro', 
       connectedDevice: DeviceInfo(
         name: 'NeuroBand Gen-3',
         status: 'Conectado',
@@ -31,6 +36,5 @@ class MockProfileRepository implements ProfileRepository {
   @override
   Future<void> updatePreferences(NotificationPreferences preferences) async {
     await Future.delayed(const Duration(milliseconds: 200));
-    // In a real app, this would persist the data
   }
 }

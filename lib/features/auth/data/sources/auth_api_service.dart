@@ -1,16 +1,18 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_constants.dart';
 import '../models/auth_models.dart';
 
 class AuthApiService {
-  final String baseUrl = "http://173.212.202.138:8080/api/v1";
+  final ApiClient _apiClient;
+
+  AuthApiService(this._apiClient);
 
   Future<LoginResponse> login(LoginRequest request) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/chofer/login'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(request.toJson()),
+      final response = await _apiClient.post(
+        ApiConstants.login,
+        body: request.toJson(),
       );
 
       final data = jsonDecode(response.body);

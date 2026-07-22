@@ -38,6 +38,19 @@ class AuthRepositoryImpl implements AuthRepository {
     return response;
   }
 
+  @override
+  Future<void> register({
+    required String fullName,
+    required String email,
+    required String password,
+  }) async {
+    // Por ahora, como Adriana no definió la API real de registro en Go para choferes
+    // mantenemos una simulación o lanzamos error si no existe el endpoint.
+    // En un futuro se llamaría a apiService.register(...)
+    await Future.delayed(const Duration(seconds: 2));
+    return;
+  }
+
   int? _extractIdFromJwt(String token) {
     try {
       final parts = token.split('.');

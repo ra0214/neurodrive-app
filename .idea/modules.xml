@@ -3,10 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/2137299182/android.flutter_secure_storage.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/2137299182/android.flutter_secure_storage.unitTest.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-671181838/android.safe_device.iml" filepath="$PROJECT_DIR$/.idea/modules/-671181838/android.safe_device.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-671181838/android.safe_device.main.iml" filepath="$PROJECT_DIR$/.idea/modules/-671181838/android.safe_device.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-671181838/android.safe_device.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/-671181838/android.safe_device.unitTest.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1366106736/android.screen_protector.iml" filepath="$PROJECT_DIR$/.idea/modules/-1366106736/android.screen_protector.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1366106736/android.screen_protector.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/-1366106736/android.screen_protector.androidTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1366106736/android.screen_protector.main.iml" filepath="$PROJECT_DIR$/.idea/modules/-1366106736/android.screen_protector.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1366106736/android.screen_protector.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/-1366106736/android.screen_protector.unitTest.iml" />

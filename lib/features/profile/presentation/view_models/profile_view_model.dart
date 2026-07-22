@@ -53,21 +53,14 @@ class ProfileViewModel extends ChangeNotifier {
   Future<void> _updatePreferences(NotificationPreferences preferences) async {
     if (_userProfile == null) return;
     
-    _userProfile = UserProfile(
-      name: _userProfile!.name,
-      id: _userProfile!.id,
-      imageUrl: _userProfile!.imageUrl,
-      connectedDevice: _userProfile!.connectedDevice,
-      emergencyContact: _userProfile!.emergencyContact,
-      preferences: preferences,
-    );
+    // CORRECCIÓN: Usamos copyWith para mantener idEmpresa y otros campos obligatorios
+    _userProfile = _userProfile!.copyWith(preferences: preferences);
     notifyListeners();
 
     try {
       await updatePreferencesUseCase(preferences);
     } catch (e) {
       debugPrint('Error updating preferences: $e');
-      // Optionally handle rollback if update fails
     }
   }
 }

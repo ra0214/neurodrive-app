@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../view_models/feedback_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/global_providers.dart';
 import '../widgets/feedback_card.dart';
 
-class CommunityFeedScreen extends StatefulWidget {
+class CommunityFeedScreen extends ConsumerStatefulWidget {
   const CommunityFeedScreen({super.key});
 
   @override
-  State<CommunityFeedScreen> createState() => _CommunityFeedScreenState();
+  ConsumerState<CommunityFeedScreen> createState() => _CommunityFeedScreenState();
 }
 
-class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
+class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<FeedbackProvider>().fetchFeedbacks();
+        ref.read(feedbackProvider).fetchFeedbacks();
       }
     });
   }
@@ -26,6 +26,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final cyanColor = const Color(0xFF00F1FE);
+    final provider = ref.watch(feedbackProvider);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -42,93 +43,89 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
         ),
         centerTitle: true,
       ),
-      body: Consumer<FeedbackProvider>(
-        builder: (context, provider, child) {
-          return RefreshIndicator(
-            onRefresh: () => provider.fetchFeedbacks(),
-            color: cyanColor,
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              children: [
-                // TARJETA DE ACCIÓN SUPERIOR
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
-                      )
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Comunidad y\nFeedback',
-                          style: TextStyle(
-                            fontSize: 22, 
-                            fontWeight: FontWeight.bold, 
-                            color: theme.colorScheme.onSurface,
-                            height: 1.2,
-                          ),
-                        ),
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(feedbackProvider).fetchFeedbacks(),
+        color: cyanColor,
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          children: [
+            // TARJETA DE ACCIÓN SUPERIOR
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  )
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Comunidad y\nFeedback',
+                      style: TextStyle(
+                        fontSize: 22, 
+                        fontWeight: FontWeight.bold, 
+                        color: theme.colorScheme.onSurface,
+                        height: 1.2,
                       ),
-                      ElevatedButton.icon(
-                        onPressed: () => _showAddFeedbackModal(context),
-                        icon: const Icon(Icons.edit, size: 18, color: Colors.black),
-                        label: const Text(
-                          'Compartir', 
-                          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: cyanColor,
-                          elevation: 4,
-                          shadowColor: cyanColor.withValues(alpha: 0.4),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                
-                const SizedBox(height: 32),
-                
-                Text(
-                  'EXPERIENCIAS RECIENTES',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    letterSpacing: 2.0,
-                    fontWeight: FontWeight.bold,
+                  ElevatedButton.icon(
+                    onPressed: () => _showAddFeedbackModal(context),
+                    icon: const Icon(Icons.edit, size: 18, color: Colors.black),
+                    label: const Text(
+                      'Compartir', 
+                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: cyanColor,
+                      elevation: 4,
+                      shadowColor: cyanColor.withValues(alpha: 0.4),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                    ),
                   ),
-                ),
-                
-                const SizedBox(height: 20),
-
-                if (provider.isLoading && provider.feedbacks.isEmpty)
-                  const Center(child: Padding(
-                    padding: EdgeInsets.all(40.0),
-                    child: CircularProgressIndicator(color: Color(0xFF00F1FE)),
-                  ))
-                else if (provider.feedbacks.isEmpty)
-                  Center(child: Padding(
-                    padding: const EdgeInsets.all(40.0),
-                    child: Text("No hay alertas activas.", style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
-                  ))
-                else
-                  ...provider.feedbacks.map((fb) => FeedbackCard(feedback: fb)),
-                
-                const SizedBox(height: 80), // Espacio para el FAB
-              ],
+                ],
+              ),
             ),
-          );
-        },
+            
+            const SizedBox(height: 32),
+            
+            Text(
+              'EXPERIENCIAS RECIENTES',
+              style: TextStyle(
+                fontSize: 12,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+
+            if (provider.isLoading && provider.feedbacks.isEmpty)
+              const Center(child: Padding(
+                padding: EdgeInsets.all(40.0),
+                child: CircularProgressIndicator(color: Color(0xFF00F1FE)),
+              ))
+            else if (provider.feedbacks.isEmpty)
+              Center(child: Padding(
+                padding: const EdgeInsets.all(40.0),
+                child: Text("No hay alertas activas.", style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+              ))
+            else
+              ...provider.feedbacks.map((fb) => FeedbackCard(feedback: fb)),
+            
+            const SizedBox(height: 80), // Espacio para el FAB
+          ],
+        ),
       ),
       // BOTÓN FLOTANTE
       floatingActionButton: FloatingActionButton.extended(
@@ -261,65 +258,68 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
               ),
               const SizedBox(height: 32),
 
-              Consumer<FeedbackProvider>(
-                builder: (context, provider, _) => SizedBox(
-                  width: double.infinity,
-                  height: 60,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: cyanColor,
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              Consumer(
+                builder: (context, ref, _) {
+                  final provider = ref.watch(feedbackProvider);
+                  return SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: cyanColor,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      ),
+                      onPressed: provider.isLoading 
+                        ? null 
+                        : () async {
+                          if (rutaController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(modalContext).showSnackBar(
+                              const SnackBar(content: Text("El nombre de la ruta es obligatorio"))
+                            );
+                            return;
+                          }
+
+                          final success = await ref.read(feedbackProvider).createFeedback(
+                            ruta: rutaController.text.trim(),
+                            peligro: selectedPeligro,
+                            comentario: comentarioController.text.trim(),
+                          );
+
+                          if (!mounted) return;
+
+                          if (success) {
+                            Navigator.pop(modalContext);
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Reporte publicado exitosamente"),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                              )
+                            );
+                          } else {
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              SnackBar(
+                                content: Text(provider.errorMessage ?? "Error al publicar"),
+                                backgroundColor: Colors.redAccent,
+                                behavior: SnackBarBehavior.floating,
+                              )
+                            );
+                          }
+                        },
+                      child: provider.isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
+                          )
+                        : const Text(
+                            "COMPARTIR CON COMPAÑEROS", 
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)
+                          ),
                     ),
-                    onPressed: provider.isLoading 
-                      ? null 
-                      : () async {
-                        if (rutaController.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(modalContext).showSnackBar(
-                            const SnackBar(content: Text("El nombre de la ruta es obligatorio"))
-                          );
-                          return;
-                        }
-
-                        final success = await provider.createFeedback(
-                          ruta: rutaController.text.trim(),
-                          peligro: selectedPeligro,
-                          comentario: comentarioController.text.trim(),
-                        );
-
-                        if (!mounted) return;
-
-                        if (success) {
-                          Navigator.pop(modalContext);
-                          ScaffoldMessenger.of(this.context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Reporte publicado exitosamente"),
-                              backgroundColor: Colors.green,
-                              behavior: SnackBarBehavior.floating,
-                            )
-                          );
-                        } else {
-                          ScaffoldMessenger.of(this.context).showSnackBar(
-                            SnackBar(
-                              content: Text(provider.errorMessage ?? "Error al publicar"),
-                              backgroundColor: Colors.redAccent,
-                              behavior: SnackBarBehavior.floating,
-                            )
-                          );
-                        }
-                      },
-                    child: provider.isLoading
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
-                        )
-                      : const Text(
-                          "COMPARTIR CON COMPAÑEROS", 
-                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)
-                        ),
-                  ),
-                ),
+                  );
+                }
               ),
             ],
           ),
